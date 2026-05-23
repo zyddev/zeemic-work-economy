@@ -8,6 +8,14 @@ const router = useRouter()
 interface SettingsItem { icon: string; title: string; subtitle?: string; href: string; badge?: number }
 interface SettingsSection { title: string; items: SettingsItem[] }
 
+const { logout } = useAuth()
+const loggingOut = ref(false)
+async function signOut() {
+  loggingOut.value = true
+  await logout()
+  navigateTo('/login')
+}
+
 const sections: SettingsSection[] = [
   {
     title: 'Account',
@@ -79,9 +87,9 @@ const sections: SettingsSection[] = [
         </div>
         <!-- Sign out -->
         <div :style="{ padding: '20px', marginTop: '8px' }">
-          <NuxtLink to="/auth/logout" style="text-decoration:none">
-            <ZmButton variant="danger" size="lg" :full="true">Sign out</ZmButton>
-          </NuxtLink>
+          <ZmButton variant="danger" size="lg" :full="true" :loading="loggingOut" :disabled="loggingOut" @click="signOut">
+            {{ loggingOut ? 'Signing out…' : 'Sign out' }}
+          </ZmButton>
         </div>
         <ZmMTabBar active="dashboard" />
       </div>
@@ -119,9 +127,9 @@ const sections: SettingsSection[] = [
             </div>
           </div>
         </template>
-        <NuxtLink to="/auth/logout" style="text-decoration:none">
-          <ZmButton variant="danger" size="lg" :full="true">Sign out</ZmButton>
-        </NuxtLink>
+        <ZmButton variant="danger" size="lg" :full="true" :loading="loggingOut" :disabled="loggingOut" @click="signOut">
+          {{ loggingOut ? 'Signing out…' : 'Sign out' }}
+        </ZmButton>
       </div>
       <ExchangeAppFooter />
     </template>

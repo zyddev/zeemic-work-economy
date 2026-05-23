@@ -128,6 +128,9 @@ const P = computed(() => ({ stroke: color.value, strokeWidth: stroke.value, stro
     <template v-else-if="name === 'upload'">
       <path d="M12 16V4" v-bind="P" /><path d="M7 9l5-5 5 5" v-bind="P" /><path d="M5 21h14" v-bind="P" />
     </template>
+    <template v-else-if="name === 'log_out'">
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" v-bind="P" /><polyline points="16 17 21 12 16 7" v-bind="P" /><line x1="21" y1="12" x2="9" y2="12" v-bind="P" />
+    </template>
     <template v-else-if="name === 'alert_circle'">
       <circle cx="12" cy="12" r="9" v-bind="P" /><path d="M12 8v4M12 16h.01" v-bind="P" />
     </template>

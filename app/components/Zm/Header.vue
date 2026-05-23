@@ -33,6 +33,15 @@ function onSwitchTo(id: string) {
   }
 }
 
+const { logout } = useAuth()
+const loggingOut = ref(false)
+
+async function handleLogout() {
+  loggingOut.value = true
+  await logout()
+  navigateTo('/login')
+}
+
 const { isMobile } = useBreakpoint()
 const mobileMenuOpen = ref(false)
 
@@ -120,6 +129,7 @@ onUnmounted(() => {
       @close="switcherOpen = false"
       @switch-to="onSwitchTo"
       @create-business="navigateTo('/b/new')"
+      @logout="handleLogout"
     />
   </header>
 
@@ -137,12 +147,23 @@ onUnmounted(() => {
         </NuxtLink>
       </nav>
       <!-- User footer -->
-      <div :style="{ padding: '20px 24px', borderTop: '1px solid var(--zm-border)', display: 'flex', alignItems: 'center', gap: '12px' }">
-        <ZmAvatar :name="u.name" :size="36" />
-        <div>
-          <div :style="{ font: '600 14px var(--zm-font-body)' }">{{ u.name }}</div>
-          <div :style="{ font: '400 12px var(--zm-font-body)', color: 'var(--zm-fg-muted)' }">{{ u.handle }}</div>
+      <div :style="{ padding: '20px 24px', borderTop: '1px solid var(--zm-border)' }">
+        <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }">
+          <ZmAvatar :name="u.name" :size="36" />
+          <div>
+            <div :style="{ font: '600 14px var(--zm-font-body)' }">{{ u.name }}</div>
+            <div :style="{ font: '400 12px var(--zm-font-body)', color: 'var(--zm-fg-muted)' }">{{ u.handle }}</div>
+          </div>
         </div>
+        <button
+          type="button"
+          :disabled="loggingOut"
+          :style="{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '12px 0', background: 'transparent', border: 'none', cursor: loggingOut ? 'default' : 'pointer', font: '500 15px var(--zm-font-body)', color: 'var(--zm-coral-500, #E84A1F)' }"
+          @click="handleLogout"
+        >
+          <ZmIcon name="log_out" :size="18" color="var(--zm-coral-500, #E84A1F)" />
+          {{ loggingOut ? 'Signing out…' : 'Sign out' }}
+        </button>
       </div>
     </div>
   </Teleport>

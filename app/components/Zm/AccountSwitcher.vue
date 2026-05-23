@@ -22,6 +22,7 @@ const emit = defineEmits<{
   close: []
   switchTo: [id: string]
   createBusiness: []
+  logout: []
 }>()
 
 const hoverId = ref<string | null>(null)
@@ -151,6 +152,18 @@ function businessBorder(id: string) {
               <ZmIcon name="plus" :size="18" />
               Create new business
             </button>
+
+            <!-- Sign out -->
+            <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--zm-border)">
+              <button
+                type="button"
+                style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:transparent; border:1px solid var(--zm-border); border-radius:var(--zm-r-md); cursor:pointer; font:500 13px var(--zm-font-body); color:var(--zm-coral-500, #E84A1F); width:100%; text-align:left"
+                @click="emit('logout')"
+              >
+                <ZmIcon name="log_out" :size="16" color="var(--zm-coral-500, #E84A1F)" />
+                Sign out
+              </button>
+            </div>
           </div>
         </Transition>
       </div>
