@@ -14,7 +14,7 @@ const resent = ref(false)
 const countdown = ref(0)
 const otpRefs = ref<HTMLInputElement[]>([])
 
-const { verifyOTC, requestOTC } = useAuth()
+const { verifyOTC, resendOTC } = useAuth()
 const { isMobile } = useBreakpoint()
 const router = useRouter()
 const toast = useToast()
@@ -77,7 +77,7 @@ async function resend() {
   resending.value = true
   resent.value = false
   try {
-    await requestOTC(email.value)
+    await resendOTC(email.value)
     resent.value = true
     startCountdown(30)
     setTimeout(() => { resent.value = false }, 4000)

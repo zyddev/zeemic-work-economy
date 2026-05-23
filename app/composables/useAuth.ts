@@ -1,3 +1,13 @@
+function setUserFromResponse(data: { userId: string; email: string; role: string }) {
+  useAuthStore().setUser({
+    id: data.userId,
+    firstName: '',
+    lastName: '',
+    email: data.email,
+    role: data.role,
+  })
+}
+
 export function useAuth() {
   // Password login — POST /auth/login/password
   async function login(email: string, password: string) {
@@ -6,28 +16,37 @@ export function useAuth() {
       body: { email, password },
       credentials: 'include',
     })
-    if (response?.userData) {
-      useAuthStore().setUser(response.userData, response.expiresAt)
+    if (response?.data) {
+      setUserFromResponse(response.data)
     }
     return { success: true }
   }
 
-  // OTC trigger — always resolves (user enumeration prevention)
-  async function requestOTC(email: string, role: string = 'User') {
+  // OTC trigger — POST /auth/login { email }
+  async function requestOTC(email: string) {
     await $fetch('/api/auth/login', {
       method: 'POST',
-      body: { email, role },
+      body: { email },
     }).catch(() => {})
   }
 
-  // OTC verify — POST /api/auth/login/verify { email, token, role }
-  async function verifyOTC(email: string, code: string, role: string = 'User') {
+  // Resend OTC — tries dedicated resend endpoint, falls back to login (same OTC trigger)
+  async function resendOTC(email: string) {
+    try {
+      await $fetch('/api/auth/resend-otc', { method: 'POST', body: { email } })
+    } catch {
+      await $fetch('/api/auth/login', { method: 'POST', body: { email } }).catch(() => {})
+    }
+  }
+
+  // OTC verify — POST /auth/login/verify { email, otc }
+  async function verifyOTC(email: string, code: string) {
     const response = await $fetch<any>('/api/auth/login/verify', {
       method: 'POST',
-      body: { email, token: code, role },
+      body: { email, otc: code },
     })
-    if (response?.userData) {
-      useAuthStore().setUser(response.userData, response.expiresAt)
+    if (response?.data) {
+      setUserFromResponse(response.data)
     }
     return response
   }
@@ -107,6 +126,7 @@ export function useAuth() {
   return {
     login,
     requestOTC,
+    resendOTC,
     verifyOTC,
     register,
     logout,
