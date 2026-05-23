@@ -8,6 +8,7 @@ export function useNotifications() {
     refresh,
   } = useFetch<Notification[]>('/api/notification', {
     default: () => [] as Notification[],
+    transform: (res: any) => (Array.isArray(res) ? res : (res?.data ?? res?.notifications ?? [])),
   })
 
   async function markRead(notificationId: string): Promise<void> {
