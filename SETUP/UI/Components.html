@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zeemic · Component Library</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="tokens.css" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <style>
+    html, body, #root { margin: 0; padding: 0; height: 100%; background: #f0eee9; font-family: 'Geist', -apple-system, sans-serif; }
+    body { overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="data.js"></script>
+  <script>
+    (function(){
+      const KEY = 'dc-viewport:' + location.pathname;
+      if (!localStorage.getItem(KEY)) {
+        localStorage.setItem(KEY, JSON.stringify({ x: 60, y: -120, scale: 0.4 }));
+      }
+    })();
+  </script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="brand.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="atomic.jsx"></script>
+  <script type="text/babel" src="cards.jsx"></script>
+  <script type="text/babel" src="screens-exchange.jsx"></script>
+  <script type="text/babel" src="screens-dashboards.jsx"></script>
+  <script type="text/babel" src="showcases.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    function App() {
+      return (
+        <DesignCanvas>
+          <DCSection id="cover" title="Zeemic component library"
+            subtitle="Atomic-design system — atoms → molecules → organisms → templates → forms → modals. Every component used across the marketplace lives here.">
+            <DCArtboard id="cover-card" label="Cover" width={1100} height={600}>
+              <div style={{ width: '100%', height: '100%', padding: 56, background: 'var(--zm-paper)', color: 'var(--zm-ink-950)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', backgroundImage: 'radial-gradient(ellipse at top right, var(--zm-gold-100), transparent 60%)' }}>
+                <ZmWordmark height={28} />
+                <div className="zm-eyebrow" style={{ marginTop: 56 }}>Component library · v1.0 · 2026</div>
+                <h1 style={{ fontFamily: 'var(--zm-font-display)', fontSize: 80, lineHeight: 0.96, letterSpacing: '-0.03em', margin: '12px 0 24px', maxWidth: 800 }}>
+                  Every component, in <em style={{ fontStyle: 'italic' }}>one place.</em>
+                </h1>
+                <p style={{ font: '400 18px/1.5 var(--zm-font-body)', color: 'var(--zm-fg-muted)', maxWidth: 640, margin: 0 }}>
+                  Organised by atomic-design level — atoms (colors, type, icons, buttons, inputs, loaders, avatars, badges), molecules (form fields, navigation, alerts, empty states), organisms (nav, cards, footer, page heroes), templates (listing, detail, dashboard, wizard), forms (auth, SSO, password, settings), and modals (drawers, dialogs, menus).
+                </p>
+              </div>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="atoms" title="01 · Atoms"
+            subtitle="The smallest design tokens and primitives. Built on tokens.css. Each renders identically across every surface.">
+            <DCArtboard id="a-color" label="Atom · Colors" width={920} height={760}>
+              <AtomColors />
+            </DCArtboard>
+            <DCArtboard id="a-type" label="Atom · Typography" width={920} height={940}>
+              <AtomType />
+            </DCArtboard>
+            <DCArtboard id="a-icons" label="Atom · Iconography (46 icons)" width={1080} height={920}>
+              <AtomIcons />
+            </DCArtboard>
+            <DCArtboard id="a-buttons" label="Atom · Buttons + icon buttons" width={1080} height={780}>
+              <AtomButtons />
+            </DCArtboard>
+            <DCArtboard id="a-forms" label="Atom · Form controls" width={1080} height={900}>
+              <AtomFormControls />
+            </DCArtboard>
+            <DCArtboard id="a-loaders" label="Atom · Loaders + skeletons" width={1080} height={1180}>
+              <AtomLoaders />
+            </DCArtboard>
+            <DCArtboard id="a-avatars" label="Atom · Avatars" width={1080} height={620}>
+              <AtomAvatars />
+            </DCArtboard>
+            <DCArtboard id="a-tags" label="Atom · Badges, chips, rating" width={1080} height={720}>
+              <AtomTags />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="molecules" title="02 · Molecules"
+            subtitle="Composed groups of atoms. Each molecule has a single, well-defined responsibility.">
+            <DCArtboard id="m-field" label="Molecule · Form field" width={1080} height={780}>
+              <MolFormField />
+            </DCArtboard>
+            <DCArtboard id="m-nav" label="Molecule · Navigation primitives" width={1080} height={780}>
+              <MolNavigation />
+            </DCArtboard>
+            <DCArtboard id="m-dashlets" label="Molecule · Stat cards, ratings" width={1080} height={680}>
+              <MolDashlets />
+            </DCArtboard>
+            <DCArtboard id="m-feedback" label="Molecule · Alert, toast, empty state" width={1080} height={960}>
+              <MolFeedback />
+            </DCArtboard>
+            <DCArtboard id="m-flow" label="Molecule · Stepper, tabs, progress" width={1080} height={620}>
+              <MolFlow />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="organisms" title="03 · Organisms"
+            subtitle="Larger composed components used across the marketplace. Each works standalone in any page.">
+            <DCArtboard id="o-nav" label="Organism · Main navigation (4 contexts)" width={1440} height={900}>
+              <OrgNav />
+            </DCArtboard>
+            <DCArtboard id="o-cards" label="Organism · Listing cards (4 verticals)" width={1320} height={780}>
+              <OrgCards />
+            </DCArtboard>
+            <DCArtboard id="o-footer" label="Organism · Main footer" width={1440} height={680}>
+              <OrgFooter />
+            </DCArtboard>
+            <DCArtboard id="o-heroes" label="Organism · Page heroes" width={1320} height={920}>
+              <OrgHeroes />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="templates" title="04 · Templates"
+            subtitle="Page-shape compositions that screens specialise into. No content — just layout.">
+            <DCArtboard id="t-listing" label="Template · Listing page" width={1080} height={960}>
+              <TplListing />
+            </DCArtboard>
+            <DCArtboard id="t-detail" label="Template · Detail page" width={1080} height={780}>
+              <TplDetail />
+            </DCArtboard>
+            <DCArtboard id="t-dashboard" label="Template · Dashboard" width={1080} height={720}>
+              <TplDashboard />
+            </DCArtboard>
+            <DCArtboard id="t-wizard" label="Template · Multi-step wizard" width={1080} height={720}>
+              <TplWizard />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="forms" title="05 · Forms"
+            subtitle="Real product forms — auth, settings, the transactional drawers. Built from molecules + atoms.">
+            <DCArtboard id="f-auth" label="Form · Sign in (password / OTC / SSO) + OTC + Signup" width={1280} height={1100}>
+              <FormAuth />
+            </DCArtboard>
+            <DCArtboard id="f-set-password" label="Form · Set / change password" width={1080} height={1080}>
+              <FormSetPassword />
+            </DCArtboard>
+            <DCArtboard id="f-sso-signin" label="Form · SSO sign-in" width={1320} height={780}>
+              <FormSsoSignin />
+            </DCArtboard>
+            <DCArtboard id="f-sso-signup" label="Form · SSO sign-up" width={1320} height={840}>
+              <FormSsoSignup />
+            </DCArtboard>
+            <DCArtboard id="f-settings" label="Form · Settings panel" width={1080} height={1080}>
+              <FormSettings />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="modals" title="06 · Modals & Overlays"
+            subtitle="Confirm dialogs, drawers, dropdown menus. The 'paused' UI moments — what users see when work is being captured or confirmed.">
+            <DCArtboard id="md-confirms" label="Modal · Confirm dialogs" width={1080} height={720}>
+              <ModConfirms />
+            </DCArtboard>
+            <DCArtboard id="md-drawers" label="Modal · Right-side drawers" width={1080} height={920}>
+              <ModDrawers />
+            </DCArtboard>
+            <DCArtboard id="md-menus" label="Modal · Dropdown menus" width={1080} height={620}>
+              <ModMenus />
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

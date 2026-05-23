@@ -1,0 +1,204 @@
+/* ───────────────────────────────────────────────
+   Zeemic Design System — tokens
+   Work-economy marketplace · editorial × productive
+   ─────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ── Brand palette ───────────────────────────── */
+  --zm-ink-950: #0B0F0D;       /* deep forest ink */
+  --zm-ink-900: #11211A;
+  --zm-ink-800: #163524;
+  --zm-ink-700: #1A4D3A;       /* PRIMARY emerald */
+  --zm-ink-600: #2B6A52;
+  --zm-ink-500: #468B71;
+  --zm-ink-400: #7DB39C;
+  --zm-ink-300: #B5D2C4;
+  --zm-ink-200: #DDEAE3;
+  --zm-ink-100: #ECF3EF;
+  --zm-ink-50:  #F4F8F6;
+
+  --zm-paper:    #F5F1E8;      /* warm cream — primary surface */
+  --zm-paper-2:  #EDE7D8;      /* deeper cream */
+  --zm-paper-3:  #E3DBC6;
+  --zm-white:    #FFFFFF;
+
+  --zm-gold-500: #F2C94C;      /* marigold accent — badges, highlights */
+  --zm-gold-400: #F7D979;
+  --zm-gold-300: #FBE7A5;
+  --zm-gold-200: #FCEFC4;
+  --zm-gold-100: #FDF6DF;
+  --zm-gold-700: #C9A634;
+
+  --zm-coral-600: #C73E1D;
+  --zm-coral-500: #E84A1F;     /* signal — urgency, errors */
+  --zm-coral-400: #EF7B5A;
+  --zm-coral-100: #FBE0D5;
+
+  --zm-sky-700:  #1E4B68;
+  --zm-sky-500:  #3C8AC0;      /* info — used sparingly */
+  --zm-sky-100:  #D9E8F3;
+
+  --zm-grey-950: #0F0F0E;      /* warm-tinged neutrals */
+  --zm-grey-900: #1C1C19;
+  --zm-grey-800: #2E2E2A;
+  --zm-grey-700: #45453F;
+  --zm-grey-600: #5F5F58;
+  --zm-grey-500: #7A7A72;
+  --zm-grey-400: #9D9D94;
+  --zm-grey-300: #C2C2B8;
+  --zm-grey-200: #DDDDD3;
+  --zm-grey-100: #ECECE3;
+  --zm-grey-50:  #F6F6EE;
+
+  /* ── Semantic ────────────────────────────────── */
+  --zm-bg:           var(--zm-paper);
+  --zm-bg-surface:   var(--zm-white);
+  --zm-bg-canvas:    var(--zm-ink-900);
+  --zm-bg-muted:     var(--zm-grey-50);
+  --zm-bg-subtle:    var(--zm-ink-50);
+
+  --zm-fg:           var(--zm-ink-950);
+  --zm-fg-muted:     var(--zm-grey-600);
+  --zm-fg-subtle:    var(--zm-grey-500);
+  --zm-fg-on-dark:   var(--zm-paper);
+  --zm-fg-on-dark-muted: rgba(245, 241, 232, 0.65);
+  --zm-fg-accent:    var(--zm-ink-700);
+
+  --zm-border:       #DDD7C7;
+  --zm-border-strong:#C5BFB0;
+  --zm-border-on-dark: rgba(245, 241, 232, 0.14);
+
+  --zm-success: #2B7A4B;
+  --zm-success-bg: #DFEEDF;
+  --zm-warning: #B8841B;
+  --zm-warning-bg: #FCEFC4;
+  --zm-danger:  var(--zm-coral-500);
+  --zm-danger-bg: var(--zm-coral-100);
+
+  /* ── Type ────────────────────────────────────── */
+  --zm-font-display: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  --zm-font-body:    'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --zm-font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+  --zm-fw-regular: 400;
+  --zm-fw-medium:  500;
+  --zm-fw-semibold:600;
+  --zm-fw-bold:    700;
+
+  /* Display scale (Instrument Serif) — editorial, generous */
+  --zm-display-4xl: 96px; /* line: 0.95, track: -0.04em */
+  --zm-display-3xl: 72px;
+  --zm-display-2xl: 56px;
+  --zm-display-xl:  44px;
+  --zm-display-lg:  36px;
+  --zm-display-md:  28px;
+  --zm-display-sm:  22px;
+
+  /* Body scale (Geist) */
+  --zm-text-2xl: 22px;
+  --zm-text-xl:  18px;
+  --zm-text-lg:  16px;
+  --zm-text-md:  14px;
+  --zm-text-sm:  13px;
+  --zm-text-xs:  12px;
+  --zm-text-2xs: 11px;
+
+  /* ── Spacing — 4px scale ─────────────────────── */
+  --zm-s-1: 4px;   --zm-s-2: 8px;   --zm-s-3: 12px;
+  --zm-s-4: 16px;  --zm-s-5: 20px;  --zm-s-6: 24px;
+  --zm-s-7: 32px;  --zm-s-8: 40px;  --zm-s-9: 48px;
+  --zm-s-10:64px;  --zm-s-11:80px;  --zm-s-12:96px;
+
+  /* ── Radii ───────────────────────────────────── */
+  --zm-r-xs: 4px;
+  --zm-r-sm: 6px;
+  --zm-r-md: 10px;
+  --zm-r-lg: 14px;
+  --zm-r-xl: 20px;
+  --zm-r-2xl:28px;
+  --zm-r-full: 9999px;
+
+  /* ── Shadows — warm-tinged ───────────────────── */
+  --zm-shadow-xs:  0 1px 2px rgba(17, 33, 26, 0.06);
+  --zm-shadow-sm:  0 1px 3px rgba(17, 33, 26, 0.06), 0 1px 2px rgba(17, 33, 26, 0.04);
+  --zm-shadow-md:  0 4px 12px rgba(17, 33, 26, 0.08), 0 2px 4px rgba(17, 33, 26, 0.04);
+  --zm-shadow-lg:  0 12px 32px rgba(17, 33, 26, 0.10), 0 4px 8px rgba(17, 33, 26, 0.05);
+  --zm-shadow-xl:  0 24px 64px rgba(17, 33, 26, 0.14), 0 8px 16px rgba(17, 33, 26, 0.06);
+  --zm-shadow-press: inset 0 2px 4px rgba(17, 33, 26, 0.10);
+
+  /* ── Motion ──────────────────────────────────── */
+  --zm-d-fast: 120ms;
+  --zm-d-base: 180ms;
+  --zm-d-slow: 240ms;
+  --zm-ease:   cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* ── Containers ──────────────────────────────── */
+  --zm-container-sm: 640px;
+  --zm-container-md: 768px;
+  --zm-container-lg: 1024px;
+  --zm-container-xl: 1280px;
+  --zm-container-2xl:1440px;
+}
+
+/* ── Animations ──────────────────────────────── */
+@keyframes zm-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes zm-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.zm-animate-pulse { animation: zm-pulse 1.8s ease-in-out infinite; }
+.zm-animate-spin  { animation: zm-spin  0.75s linear infinite; }
+
+/* ── Base reset ────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+.zm-root {
+  font-family: var(--zm-font-body);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--zm-fg);
+  background: var(--zm-bg);
+  line-height: 1.5;
+}
+
+.zm-root * { box-sizing: border-box; }
+
+/* ── Typography utilities ──────────────────────── */
+.zm-display { font-family: var(--zm-font-display); font-weight: 400; line-height: 1.02; letter-spacing: -0.02em; }
+.zm-display-italic { font-style: italic; }
+
+.zm-d-4xl { font-family: var(--zm-font-display); font-size: var(--zm-display-4xl); line-height: 0.95; letter-spacing: -0.035em; }
+.zm-d-3xl { font-family: var(--zm-font-display); font-size: var(--zm-display-3xl); line-height: 1; letter-spacing: -0.03em; }
+.zm-d-2xl { font-family: var(--zm-font-display); font-size: var(--zm-display-2xl); line-height: 1.04; letter-spacing: -0.025em; }
+.zm-d-xl  { font-family: var(--zm-font-display); font-size: var(--zm-display-xl);  line-height: 1.06; letter-spacing: -0.022em; }
+.zm-d-lg  { font-family: var(--zm-font-display); font-size: var(--zm-display-lg);  line-height: 1.1;  letter-spacing: -0.02em; }
+.zm-d-md  { font-family: var(--zm-font-display); font-size: var(--zm-display-md);  line-height: 1.15; letter-spacing: -0.015em; }
+.zm-d-sm  { font-family: var(--zm-font-display); font-size: var(--zm-display-sm);  line-height: 1.2; }
+
+.zm-t-2xl { font-size: var(--zm-text-2xl); line-height: 1.35; }
+.zm-t-xl  { font-size: var(--zm-text-xl);  line-height: 1.4; }
+.zm-t-lg  { font-size: var(--zm-text-lg);  line-height: 1.5; }
+.zm-t-md  { font-size: var(--zm-text-md);  line-height: 1.5; }
+.zm-t-sm  { font-size: var(--zm-text-sm);  line-height: 1.45; }
+.zm-t-xs  { font-size: var(--zm-text-xs);  line-height: 1.4; }
+.zm-t-2xs { font-size: var(--zm-text-2xs); line-height: 1.3; }
+
+.zm-mono  { font-family: var(--zm-font-mono); font-feature-settings: "ss01"; }
+
+.zm-eyebrow {
+  font-family: var(--zm-font-body);
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--zm-fg-muted);
+}
+
+.zm-num-tab { font-variant-numeric: tabular-nums; }
