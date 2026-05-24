@@ -34,5 +34,11 @@ export default defineEventHandler(async (event) => {
     return sendRedirect(event, location, 302)
   }
 
+  // BFF returns 400 for unknown providers or 503 when CLIENT_ID env var is missing.
+  // Both are configuration errors — send the user back to login with an error flag.
+  if (response.status === 400 || response.status === 503) {
+    return sendRedirect(event, '/login?error=oauth_failed', 302)
+  }
+
   throw createError({ statusCode: 502, statusMessage: 'OAuth service did not redirect' })
 })

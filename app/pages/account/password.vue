@@ -1,9 +1,9 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
 useHead({ title: 'Set password — Zeemic' })
 
 const newPassword = ref('')
 const confirmPassword = ref('')
+const emailInput = ref('')
 const showPasswords = ref(false)
 const submitting = ref(false)
 const error = ref('')
@@ -13,6 +13,8 @@ const { setPassword } = useAuth()
 const { isMobile } = useBreakpoint()
 const { user } = useUserInfo()
 const router = useRouter()
+
+const resolvedEmail = computed(() => user.value?.email || emailInput.value)
 
 const strength = computed(() => {
   const p = newPassword.value
@@ -31,13 +33,14 @@ const strength = computed(() => {
 
 async function save() {
   error.value = ''
+  if (!resolvedEmail.value.includes('@')) { error.value = 'Please enter a valid email address.'; return }
   if (newPassword.value.length < 8) { error.value = 'Password must be at least 8 characters.'; return }
   if (newPassword.value !== confirmPassword.value) { error.value = 'Passwords do not match.'; return }
   submitting.value = true
   try {
-    await setPassword(user.value?.email ?? '', newPassword.value)
+    await setPassword(resolvedEmail.value, newPassword.value)
     success.value = true
-    setTimeout(() => navigateTo('/dashboard'), 1500)
+    setTimeout(() => navigateTo(user.value ? '/dashboard' : '/login'), 1500)
   } catch (err: any) {
     const status = err?.data?.statusCode ?? err?.statusCode ?? err?.response?.status
     if (status === 409) error.value = "You already have a password. Use 'Forgot password' to reset it."
@@ -64,13 +67,21 @@ async function save() {
         <div :style="{ padding: '8px 20px 16px' }">
           <div class="zm-eyebrow">Account</div>
           <h1 :style="{ fontFamily: 'var(--zm-font-display)', fontSize: '32px', lineHeight: '1.04', letterSpacing: '-0.025em', margin: '8px 0 6px' }">Set a <em style="font-style:italic">password.</em></h1>
-          <p :style="{ font: '400 13.5px/1.5 var(--zm-font-body)', color: 'var(--zm-fg-muted)', margin: '0' }">
-            Signed in as <strong :style="{ color: 'var(--zm-ink-950)' }">{{ user?.email }}</strong>. After saving, you can sign in with email + password.
+          <p v-if="user?.email" :style="{ font: '400 13.5px/1.5 var(--zm-font-body)', color: 'var(--zm-fg-muted)', margin: '0' }">
+            Signed in as <strong :style="{ color: 'var(--zm-ink-950)' }">{{ user.email }}</strong>. After saving, you can sign in with email + password.
+          </p>
+          <p v-else :style="{ font: '400 13.5px/1.5 var(--zm-font-body)', color: 'var(--zm-fg-muted)', margin: '0' }">
+            Enter your account email and choose a password.
           </p>
         </div>
 
         <!-- Form area -->
         <div :style="{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '14px' }">
+
+          <!-- Email (only shown when not logged in) -->
+          <ZmField v-if="!user?.email" label="Email" :required="true">
+            <ZmInput v-model="emailInput" type="email" :full="true" placeholder="you@example.com" leading-icon="mail" size="lg" />
+          </ZmField>
 
           <!-- New password -->
           <ZmField label="New password" :required="true">
@@ -134,6 +145,20 @@ async function save() {
           <p :style="{ font: '400 14px/1.5 var(--zm-font-body)', color: 'var(--zm-fg-muted)', margin: '0 0 24px' }">
             After saving, you can sign in with email + password instead of waiting for a code.
           </p>
+
+          <!-- Email (only shown when not logged in) -->
+          <div v-if="!user?.email" :style="{ marginBottom: '16px' }">
+            <label :style="{ display: 'block', font: '500 13px var(--zm-font-body)', marginBottom: '6px' }">Email <span :style="{ color: 'var(--zm-coral-500)' }">*</span></label>
+            <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', height: '40px', padding: '0 12px', background: 'var(--zm-white)', border: '1px solid var(--zm-border)', borderRadius: 'var(--zm-r-md)' }">
+              <ZmIcon name="mail" :size="16" color="var(--zm-fg-muted)" />
+              <input
+                v-model="emailInput"
+                type="email"
+                placeholder="you@example.com"
+                :style="{ flex: '1', border: 'none', outline: 'none', background: 'transparent', font: '400 14px var(--zm-font-body)', color: 'var(--zm-fg)' }"
+              />
+            </div>
+          </div>
 
           <!-- New password -->
           <div :style="{ marginBottom: '4px' }">
@@ -204,15 +229,15 @@ async function save() {
           <!-- Actions -->
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '10px' }">
             <ZmButton variant="primary" size="lg" :full="true" icon-right="arrow_right" :loading="submitting" :disabled="submitting || success" @click="save">
-              {{ submitting ? 'Saving…' : 'Login' }}
+              {{ submitting ? 'Saving…' : 'Save password' }}
             </ZmButton>
-            <ZmButton variant="ghost" size="md" :full="true" :disabled="submitting" @click="navigateTo('/dashboard')">
+            <ZmButton v-if="user" variant="ghost" size="md" :full="true" :disabled="submitting" @click="navigateTo('/dashboard')">
               Skip — keep using one-time codes
             </ZmButton>
           </div>
 
           <p :style="{ font: '400 11.5px/1.45 var(--zm-font-body)', color: 'var(--zm-fg-muted)', textAlign: 'center', marginTop: '16px' }">
-            Tapping <strong :style="{ color: 'var(--zm-ink-950)' }">Login</strong> saves your password and signs you in with your new credentials.
+            Tapping <strong :style="{ color: 'var(--zm-ink-950)' }">Save password</strong> stores your new password on this account.
           </p>
         </div>
 
