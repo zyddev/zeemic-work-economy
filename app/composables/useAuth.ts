@@ -33,7 +33,7 @@ export function useAuth() {
   // Resend OTC — tries dedicated resend endpoint, falls back to login (same OTC trigger)
   async function resendOTC(email: string) {
     try {
-      await $fetch('/api/auth/resend-otc', { method: 'POST', body: { email } })
+      await $fetch('/api/auth/resendOTC', { method: 'POST', body: { email } })
     } catch {
       await $fetch('/api/auth/login', { method: 'POST', body: { email } }).catch(() => {})
     }
