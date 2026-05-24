@@ -11,9 +11,9 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/dashboard')
   }
 
-  // Expired session: send to logout for any route
+  // Expired session: clear and send to login
   if (auth.isAuthenticated && auth.isSessionExpired) {
     auth.clearUser()
-    return navigateTo('/auth/logout')
+    return navigateTo('/login')
   }
 })

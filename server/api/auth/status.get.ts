@@ -1,6 +1,6 @@
 export default defineEventHandler((event) => {
   try {
-    const token = getCookie(event, 'AuthToken')
+    const token = getCookie(event, 'access_token') || getCookie(event, 'accessToken')
     if (!token) return { authenticated: false }
 
     let payload: Record<string, any>
@@ -16,22 +16,19 @@ export default defineEventHandler((event) => {
       return { authenticated: false, reason: 'expired' }
     }
 
-    const groups: string[] = payload['cognito:groups'] ?? []
-    const role: string = groups[0] ?? getCookie(event, 'UserRole') ?? ''
-
-    if (role === 'new_hire') {
-      return { authenticated: false, reason: 'unauthorized' }
+    if (payload.type && payload.type !== 'access') {
+      return { authenticated: false, reason: 'wrong_token_type' }
     }
 
     return {
       authenticated: true,
       expiresAt: exp ? exp * 1000 : null,
       user: {
-        id: payload.sub ?? '',
-        firstName: payload.given_name ?? (payload.name ?? '').split(' ')[0] ?? '',
-        lastName: payload.family_name ?? (payload.name ?? '').split(' ').slice(1).join(' ') ?? '',
+        id: payload.userId ?? '',
+        firstName: '',
+        lastName: '',
         email: payload.email ?? '',
-        role,
+        role: payload.role ?? '',
       },
     }
   } catch {
