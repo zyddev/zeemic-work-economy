@@ -5,7 +5,8 @@ export default defineEventHandler((event) => {
 
     let payload: Record<string, any>
     try {
-      const segment = token.split('.')[1]
+      const segment = token.split('.')[1] ?? ''
+      if (!segment) return { authenticated: false }
       payload = JSON.parse(Buffer.from(segment, 'base64url').toString())
     } catch {
       return { authenticated: false }
