@@ -20,7 +20,9 @@ These endpoints were added to the BFF alongside the existing OTC flow. All auth 
 
 `:provider` is one of: `google`, `apple`, `linkedin`
 
-All endpoints are rate-limited (5 requests / 5 minutes per IP). All return errors in the standard shape:
+Password endpoints (`/login/password`, `/password/set`, `/password/reset`, `/password/reset/confirm`) are rate-limited at 5 requests / 5 minutes per IP. OAuth endpoints (`/oauth/:provider`, `/oauth/callback`) are not rate-limited.
+
+All endpoints return errors in the standard shape:
 ```json
 { "message": "Human-readable error", "statusCode": 401 }
 ```
@@ -84,9 +86,9 @@ if (res.ok) {
 
 ---
 
-### 1.2 Set Password (for existing OTC / OAuth users)
+### 1.2 Set Password (for existing OTC / OAuth accounts)
 
-Use this when a logged-in user wants to add a password to their account. The user must already have an account (created via OTC or OAuth).
+Use this when a user wants to add a password to an existing account. No auth token is required — the auth service validates that the email belongs to a registered account. The user does not need to be logged in to call this endpoint.
 
 ```
 POST /auth/password/set
@@ -178,24 +180,29 @@ async function submitReset(newPassword) {
 
 ## Part 2 — OAuth (Google, Apple, LinkedIn)
 
-OAuth uses a three-step browser redirect flow. The frontend does not manage tokens directly — the BFF exchanges the OAuth code for cookies on the server side.
+OAuth uses a four-step browser redirect flow. The frontend only triggers the first step — everything else is handled server-side.
 
 ### Flow overview
 
 ```
 1. User clicks "Sign in with Google"
-2. Frontend navigates the browser to:  GET /auth/oauth/google
-3. BFF redirects browser to Google's OAuth consent page
+2. Frontend navigates browser to:    GET /auth/oauth/google
+3. BFF builds the Google authorization URL from env vars and issues a 302
+   → browser lands on accounts.google.com/... (vendor consent page)
 4. User authenticates with Google
-5. Google redirects to BFF:            GET /auth/oauth/callback?exchange_code=<uuid>
-6. BFF calls auth service, receives JWT cookies, sets them on the response
-7. BFF redirects browser to:           {FRONTEND_URL}/dashboard
-8. User is now logged in — cookies are set
+5. Google redirects to auth service: {AUTH_SERVICE_URL}/auth/oauth/google/callback?code=...&state=...
+6. Auth service verifies the code, creates a short-lived exchange_code,
+   redirects browser to BFF:         GET /auth/oauth/callback?exchange_code=<uuid>
+7. BFF exchanges the code with auth service, receives JWT cookies, sets them
+8. BFF redirects browser to:         {FRONTEND_URL}/dashboard
+9. User is now logged in — cookies are set
 ```
+
+The browser visits three domains in sequence: **BFF → vendor consent page → auth service → BFF → frontend**. Your frontend only initiates step 2.
 
 ### 2.1 Initiate OAuth
 
-Navigate the browser (not a fetch call) to:
+Navigate the browser (not a `fetch` call) to:
 
 ```
 GET /auth/oauth/:provider
@@ -203,12 +210,44 @@ GET /auth/oauth/:provider
 
 where `:provider` is `google`, `apple`, or `linkedin`.
 
-**The simplest implementation — an anchor tag or `window.location` assignment:**
+The BFF constructs the vendor's authorization URL directly using the provider's known OAuth endpoint and the configured `CLIENT_ID` env var, then issues a `302` to the vendor. No network call to the auth service is made during initiation.
+
+The exact URL the browser is sent to per provider:
+
+```
+# Google
+https://accounts.google.com/o/oauth2/v2/auth
+  ?client_id=<GOOGLE_CLIENT_ID>
+  &redirect_uri=<AUTH_SERVICE_URL>/auth/oauth/google/callback
+  &response_type=code
+  &scope=openid+email+profile
+  &state=<base64url({ returnUrl, role })>
+
+# Apple  (note: response_mode=form_post — Apple POSTs the callback)
+https://appleid.apple.com/auth/authorize
+  ?client_id=<APPLE_CLIENT_ID>
+  &redirect_uri=<AUTH_SERVICE_URL>/auth/oauth/apple/callback
+  &response_type=code
+  &scope=openid+email
+  &response_mode=form_post
+  &state=<base64url({ returnUrl, role })>
+
+# LinkedIn
+https://www.linkedin.com/oauth/v2/authorization
+  ?client_id=<LINKEDIN_CLIENT_ID>
+  &redirect_uri=<AUTH_SERVICE_URL>/auth/oauth/linkedin/callback
+  &response_type=code
+  &scope=openid+profile+email
+  &state=<base64url({ returnUrl, role })>
+```
+
+**The simplest frontend implementation:**
 
 ```jsx
 // React example
 function OAuthButtons() {
   const startOAuth = (provider) => {
+    // Navigate the browser — do NOT use fetch()
     window.location.href = `/auth/oauth/${provider}`;
   };
 
@@ -222,27 +261,34 @@ function OAuthButtons() {
 }
 ```
 
-**Do not use `fetch()` for this step.** The flow requires the browser to follow redirects through OAuth consent pages which set their own cookies. A `fetch` call cannot do this.
+**Do not use `fetch()` for this step.** The browser must navigate to the vendor consent page so the provider can set its own session cookies. A `fetch` call stays in the background and can't drive that navigation.
 
 **Optional `role` query param** — for admin sign-in via OAuth, append `?role=Admin`:
 ```js
 window.location.href = `/auth/oauth/google?role=Admin`;
 ```
 
+**Errors:**
+
+| Status | Meaning | UI action |
+|--------|---------|-----------|
+| `400` | Unknown provider (not `google`, `apple`, or `linkedin`) | Should not happen with hard-coded buttons; log and show generic error |
+| `503` | Provider `CLIENT_ID` env var not set on server | Server misconfiguration — show "Sign-in temporarily unavailable" |
+
 ---
 
 ### 2.2 OAuth Callback — Handled by BFF
 
-The BFF handles `GET /auth/oauth/callback` automatically. Your frontend does not need to implement this route.
+The BFF handles `GET /auth/oauth/callback` automatically (step 6–8 above). Your frontend does not need to implement this route.
 
 After a successful OAuth:
 - The BFF sets `access_token` and `refresh_token` cookies on the browser
 - The browser is redirected to `{FRONTEND_URL}/dashboard`
 
-After a failed OAuth (invalid code, auth service error, timeout):
+After a failed OAuth (invalid or expired exchange code, auth service error):
 - The browser is redirected to `{FRONTEND_URL}/login?error=oauth_failed`
 
-Your login page should check for `?error=oauth_failed` and show an appropriate message:
+Handle the error state on your login page:
 
 ```js
 // On /login page mount
@@ -259,8 +305,8 @@ if (error === 'oauth_failed') {
 **Google:** Standard redirect flow. No special frontend handling needed.
 
 **Apple:**
-- Apple only returns the user's name on the very first sign-in. On subsequent sign-ins, the name is not returned. Store the user's name from the first session if needed.
-- Apple's OAuth callback arrives as a `POST` (not `GET`) — the BFF and auth service handle this transparently.
+- Apple only returns the user's name on the **very first** sign-in. On subsequent sign-ins only the `sub` (user ID) is returned. Save the name when you first receive it.
+- Apple's callback arrives as a `POST` with `application/x-www-form-urlencoded` — the auth service handles this transparently; no BFF or frontend changes needed.
 
 **LinkedIn:** Standard redirect flow. No special frontend handling needed.
 
