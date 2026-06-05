@@ -7,7 +7,7 @@ const agreedToTerms = ref(false)
 const submitting = ref(false)
 const formError = ref('')
 
-const { register } = useAuth()
+const { register, startOAuth } = useAuth()
 const { isMobile } = useBreakpoint()
 const router = useRouter()
 
@@ -89,7 +89,7 @@ async function sendCode() {
 
           <!-- SSO buttons -->
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '10px' }">
-            <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }">
+            <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('google')">
               <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink:0">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -98,13 +98,13 @@ async function sendCode() {
               </svg>
               Sign up with Google
             </button>
-            <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }">
+            <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('apple')">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
               </svg>
               Sign up with Apple
             </button>
-            <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }">
+            <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('linkedin')">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2" style="flex-shrink:0">
                 <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.96 0-1.74-.78-1.74-1.74s.78-1.74 1.74-1.74 1.74.78 1.74 1.74-.78 1.74-1.74 1.74zm13.5 12.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-11h2.88v1.5h.04c.4-.76 1.38-1.56 2.84-1.56 3.04 0 3.6 2 3.6 4.6v6.46z"/>
               </svg>
@@ -224,7 +224,7 @@ async function sendCode() {
 
             <!-- SSO buttons — stacked full-width -->
             <div :style="{ display: 'flex', flexDirection: 'column', gap: '8px' }">
-              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }">
+              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('google')">
                 <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink:0">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -234,14 +234,14 @@ async function sendCode() {
                 <span :style="{ flex: '1', textAlign: 'center' }">Sign up with Google</span>
                 <span :style="{ width: '20px' }" />
               </button>
-              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }">
+              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('apple')">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
                 <span :style="{ flex: '1', textAlign: 'center' }">Sign up with Apple</span>
                 <span :style="{ width: '20px' }" />
               </button>
-              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }">
+              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('linkedin')">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2" style="flex-shrink:0">
                   <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.96 0-1.74-.78-1.74-1.74s.78-1.74 1.74-1.74 1.74.78 1.74 1.74-.78 1.74-1.74 1.74zm13.5 12.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-11h2.88v1.5h.04c.4-.76 1.38-1.56 2.84-1.56 3.04 0 3.6 2 3.6 4.6v6.46z"/>
                 </svg>

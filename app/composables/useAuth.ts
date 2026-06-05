@@ -116,10 +116,9 @@ export function useAuth() {
   }
 
   // Start OAuth — browser redirect (NOT fetch) so the browser follows the OAuth redirect chain
-  // provider: 'google' | 'apple' | 'linkedin'
-  function startOAuth(provider: 'google' | 'apple' | 'linkedin') {
+  function startOAuth(provider: 'google' | 'linkedin' | 'apple') {
     if (typeof window !== 'undefined') {
-      window.location.href = `/api/auth/oauth/${provider}`
+      window.location.assign(`/api/auth/oauth/${provider}`)
     }
   }
 
