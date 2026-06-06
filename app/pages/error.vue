@@ -4,13 +4,14 @@ useHead({ title: 'Error — Zeemic' })
 
 const route = useRoute()
 
-// ── Error catalogue ───────────────────────────────────────────────────────────
 type ErrorVariant = {
   code: string
   tone: 'neutral' | 'error' | 'warning'
+  icon: string
   eyebrow: string
   title: string
   titleEmphasis: string
+  titleSuffix?: string
   body: string
   primary: { label: string; icon: string; href?: string }
   secondary: { label: string; icon: string; href?: string }
@@ -19,7 +20,7 @@ type ErrorVariant = {
 
 const ERRORS: Record<string, ErrorVariant> = {
   '404': {
-    code: '404', tone: 'neutral',
+    code: '404', tone: 'neutral', icon: 'search',
     eyebrow: 'Page not found',
     title: 'This page took a', titleEmphasis: 'wrong turn.',
     body: 'The link may be broken, or the page may have moved. Let\'s get you back to somewhere useful.',
@@ -28,7 +29,7 @@ const ERRORS: Record<string, ErrorVariant> = {
     ref: 'ref_9a2f-404',
   },
   '500': {
-    code: '500', tone: 'error',
+    code: '500', tone: 'error', icon: 'bolt',
     eyebrow: 'Server error',
     title: 'Something broke on', titleEmphasis: 'our end.',
     body: "This one's on us. The team has been notified automatically. Try again in a moment, or head back home.",
@@ -37,16 +38,16 @@ const ERRORS: Record<string, ErrorVariant> = {
     ref: 'ref_3c8b-500',
   },
   '403': {
-    code: '403', tone: 'warning',
+    code: '403', tone: 'warning', icon: 'user',
     eyebrow: 'Access denied',
-    title: "You don't have", titleEmphasis: 'access here.',
-    body: "Your account isn't permitted to view this page. If you think this is a mistake, sign in with a different account or ask an admin.",
+    title: "You don't have", titleEmphasis: 'access', titleSuffix: ' here.',
+    body: "Your account isn't permitted to view this page. If you think this is a mistake, sign in with a different account or ask an admin for access.",
     primary: { label: 'Sign in', icon: 'arrow_right', href: '/login' },
     secondary: { label: 'Back to home', icon: 'chevron_left', href: '/' },
     ref: 'ref_71de-403',
   },
   '503': {
-    code: '503', tone: 'warning',
+    code: '503', tone: 'warning', icon: 'wrench',
     eyebrow: 'Scheduled maintenance',
     title: 'Down for a', titleEmphasis: 'quick tune-up.',
     body: "We're shipping an upgrade and will be back shortly. Bookings and payments resume automatically — nothing is lost.",
@@ -54,8 +55,8 @@ const ERRORS: Record<string, ErrorVariant> = {
     secondary: { label: 'Retry now', icon: 'arrow_right' },
     ref: `maint_${new Date().toISOString().slice(0, 10)}`,
   },
-  offline: {
-    code: '⚲', tone: 'neutral',
+  'offline': {
+    code: '⚲', tone: 'neutral', icon: 'globe',
     eyebrow: 'No connection',
     title: "You're", titleEmphasis: 'offline.',
     body: "We can't reach Zeemic right now. Check your internet connection and try again — your draft is saved locally.",
@@ -63,29 +64,16 @@ const ERRORS: Record<string, ErrorVariant> = {
     secondary: { label: 'Back to home', icon: 'chevron_left', href: '/' },
     ref: 'net_offline',
   },
-  oauth: {
-    code: '!', tone: 'error',
-    eyebrow: 'Authentication failed',
-    title: 'Sign-in', titleEmphasis: 'failed.',
-    body: 'We couldn\'t complete your sign-in. Please try again — if the problem persists, contact support.',
-    primary: { label: 'Try again', icon: 'arrow_right', href: '/login' },
-    secondary: { label: 'Back to sign-in', icon: 'chevron_left', href: '/login' },
-    ref: 'ERR_OAUTH',
-  },
 }
 
-// ── Resolve which variant to show ─────────────────────────────────────────────
 const resolvedVariant = computed((): ErrorVariant => {
   const code = route.query.code as string | undefined
   const msg = route.query.msg as string | undefined
-
   if (code && ERRORS[code]) return ERRORS[code]!
   if (msg) {
-    // OAuth error from backend: ?msg=Authentication%20Failed
-    return {
-      ...ERRORS.oauth!,
-      body: decodeURIComponent(msg),
-    }
+    // OAuth / backend error: ?msg=Authentication%20Failed — render as a 500-tone error
+    // with the backend's message as the body.
+    return { ...ERRORS['500']!, body: decodeURIComponent(msg) }
   }
   return ERRORS['404']!
 })
@@ -110,20 +98,8 @@ const medallionColor = computed(() => ({
   warning: 'var(--zm-gold-600, #ca8a04)',
 }[e.value.tone]))
 
-const MEDALLION_ICONS: Record<string, string> = {
-  '404': 'search',
-  '500': 'bolt',
-  '403': 'user',
-  '503': 'settings',
-  offline: 'globe',
-  oauth: 'alert_circle',
-}
-const medallionIcon = computed(() => {
-  const code = route.query.code as string | undefined
-  if (code && MEDALLION_ICONS[code]) return MEDALLION_ICONS[code]!
-  if (route.query.msg) return 'alert_circle'
-  return 'search'
-})
+// Unique key for the current variant — drives :key on animated panels
+const variantKey = computed(() => e.value.code + e.value.eyebrow)
 
 function handlePrimary() {
   const href = e.value.primary.href
@@ -147,7 +123,7 @@ function handleSecondary() {
 
     <!-- Left — dark editorial panel with oversized code watermark -->
     <div :style="{ background: 'var(--zm-ink-950)', color: 'var(--zm-paper)', padding: '56px 60px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }">
-      <!-- Oversized code watermark -->
+      <!-- Watermark -->
       <div
         aria-hidden
         :style="{
@@ -164,9 +140,9 @@ function handleSecondary() {
         <ZmWordmark :height="26" color="var(--zm-paper)" />
       </NuxtLink>
 
-      <!-- Large code display -->
+      <!-- Animated code + eyebrow -->
       <div :style="{ flex: '1', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }">
-        <div :style="{ display: 'flex', alignItems: 'baseline', gap: '4px' }">
+        <div :key="variantKey" class="zm-fade-up" :style="{ display: 'flex', alignItems: 'baseline', gap: '4px' }">
           <span :style="{ fontFamily: 'var(--zm-font-display)', fontSize: '200px', lineHeight: '0.86', letterSpacing: '-0.04em', color: 'var(--zm-paper)' }">
             {{ e.code }}
           </span>
@@ -182,7 +158,7 @@ function handleSecondary() {
 
     <!-- Right — recovery content on paper -->
     <div :style="{ padding: '56px 60px', display: 'flex', alignItems: 'center', background: 'var(--zm-paper)' }">
-      <div :style="{ maxWidth: '420px', width: '100%' }">
+      <div :key="variantKey" class="zm-fade-up" :style="{ maxWidth: '420px', width: '100%' }">
 
         <!-- Medallion -->
         <div
@@ -192,12 +168,12 @@ function handleSecondary() {
             marginBottom: '24px',
           }"
         >
-          <ZmIcon :name="medallionIcon" :size="32" :color="medallionColor" />
+          <ZmIcon :name="e.icon" :size="32" :color="medallionColor" />
         </div>
 
         <!-- Headline -->
         <h1 :style="{ fontFamily: 'var(--zm-font-display)', fontSize: '48px', lineHeight: '1.02', letterSpacing: '-0.03em', margin: '0 0 14px' }">
-          {{ e.title }} <em style="font-style:italic">{{ e.titleEmphasis }}</em>
+          {{ e.title }} <em style="font-style:italic">{{ e.titleEmphasis }}</em>{{ e.titleSuffix }}
         </h1>
 
         <!-- Body -->
@@ -229,3 +205,13 @@ function handleSecondary() {
 
   </div>
 </template>
+
+<style scoped>
+@keyframes zm-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .zm-fade-up { animation: zm-fade-up 360ms var(--zm-ease, cubic-bezier(0.16,1,0.3,1)) both; }
+}
+</style>
