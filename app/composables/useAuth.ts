@@ -1,29 +1,3 @@
-// ── PKCE helpers (module-level — defined once, not per useAuth() call) ────────
-
-function generateCodeVerifier(): string {
-  const bytes = new Uint8Array(64)
-  crypto.getRandomValues(bytes)
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-}
-
-async function generateCodeChallenge(verifier: string): Promise<string> {
-  const data = new TextEncoder().encode(verifier)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  let binary = ''
-  for (const byte of new Uint8Array(digest)) binary += String.fromCharCode(byte)
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-}
-
-function generateState(): string {
-  const bytes = new Uint8Array(16)
-  crypto.getRandomValues(bytes)
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-
 function setUserFromResponse(data: { userId: string; email: string; role: string }) {
   useAuthStore().setUser({
     id: data.userId,
@@ -120,8 +94,7 @@ export function useAuth() {
     })
   }
 
-  // Set password for an existing account (OTC or OAuth user adding a password)
-  // POST /auth/password/set
+  // Set password for an existing account — POST /auth/password/set
   async function setPassword(email: string, password: string) {
     return $fetch('/api/auth/password/set', {
       method: 'POST',
@@ -141,33 +114,6 @@ export function useAuth() {
     return response
   }
 
-  // Start OAuth with PKCE — generates state + code_verifier, stores them in
-  // sessionStorage, then redirects the browser to the backend initiation URL.
-  // The matching callback page at /auth/oauth/{provider}/callback validates
-  // state and completes the code exchange.
-  async function startOAuth(
-    provider: 'google' | 'linkedin' | 'apple',
-    returnTo = '/dashboard',
-  ): Promise<void> {
-    if (typeof window === 'undefined') return
-
-    const state = generateState()
-    const codeVerifier = generateCodeVerifier()
-    const codeChallenge = await generateCodeChallenge(codeVerifier)
-
-    sessionStorage.setItem(
-      'oauth_pending',
-      JSON.stringify({ state, codeVerifier, returnTo, provider }),
-    )
-
-    const params = new URLSearchParams({
-      state,
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-    })
-    window.location.assign(`/api/auth/oauth/${provider}?${params}`)
-  }
-
   return {
     login,
     requestOTC,
@@ -180,6 +126,5 @@ export function useAuth() {
     confirmPasswordResetByToken,
     setPassword,
     resetTemporaryPassword,
-    startOAuth,
   }
 }
