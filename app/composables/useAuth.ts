@@ -114,12 +114,14 @@ export function useAuth() {
     return response
   }
 
-  // BFF OAuth — backend owns the full OAuth lifecycle (state, code exchange,
-  // cookie issuance). Frontend just sends the browser to the initiation URL;
-  // on success the backend redirects to /dashboard, on failure to /error?msg=.
+  // BFF OAuth — backend owns state, code exchange, and cookie issuance.
+  // Frontend relays: browser navigates directly to the backend initiation URL,
+  // provider redirects back to our /auth/oauth/{provider}/callback relay page,
+  // which forwards code+state to the backend callback endpoint.
   function startOAuth(provider: 'google' | 'linkedin' | 'apple'): void {
     if (typeof window === 'undefined') return
-    window.location.assign(`/api/auth/oauth/${provider}`)
+    const { public: { appUrl } } = useRuntimeConfig()
+    window.location.assign(`${appUrl}/auth/oauth/${provider}`)
   }
 
   return {
