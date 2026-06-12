@@ -6,6 +6,10 @@ export default defineNuxtConfig({
   modules: ['@pinia/nuxt'],
   css: ['~/assets/css/tokens.css'],
 
+  alias: {
+    '#shared': './shared',
+  },
+
   imports: {
     dirs: ['composables/**', 'stores/**'],
   },
