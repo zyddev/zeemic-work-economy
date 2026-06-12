@@ -1,4 +1,12 @@
 export const FEATURE_FLAGS = {
+  // ── Auth ─────────────────────────────────────────────────────
+  AUTH_METHOD_SWITCHER:                        true,
+  AUTH_METHOD_PASSWORD:                        true,
+  AUTH_METHOD_OTC:                             true,
+  AUTH_OAUTH_GOOGLE:                           true,
+  AUTH_OAUTH_FACEBOOK:                         true,
+  AUTH_OAUTH_LINKEDIN:                         true,
+
   // ── Navigation ───────────────────────────────────────────────
   NAVIGATION_MAIN:                             true,
   NAVIGATION_LOGO:                             true,

@@ -1,7 +1,21 @@
 <script setup lang="ts">
 useHead({ title: 'Sign in — Zeemic' })
 
-const method = ref<'password' | 'otc'>('password')
+const { isFeatureEnabled } = useFeatureFlags()
+
+const FF = {
+  methodSwitcher: isFeatureEnabled('AUTH_METHOD_SWITCHER'),
+  methodPassword: isFeatureEnabled('AUTH_METHOD_PASSWORD'),
+  methodOtc:      isFeatureEnabled('AUTH_METHOD_OTC'),
+  oauthGoogle:    isFeatureEnabled('AUTH_OAUTH_GOOGLE'),
+  oauthFacebook:  isFeatureEnabled('AUTH_OAUTH_FACEBOOK'),
+  oauthLinkedin:  isFeatureEnabled('AUTH_OAUTH_LINKEDIN'),
+}
+
+const showMethodSwitcher = FF.methodSwitcher && FF.methodPassword && FF.methodOtc
+const showOAuthSection   = FF.oauthGoogle || FF.oauthFacebook || FF.oauthLinkedin
+
+const method = ref<'password' | 'otc'>(FF.methodPassword ? 'password' : 'otc')
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
@@ -84,7 +98,7 @@ async function sendOTC() {
         <div :style="{ padding: '0 20px' }">
 
           <!-- Method switcher -->
-          <div :style="{
+          <div v-if="showMethodSwitcher" :style="{
             display: 'grid', gridTemplateColumns: '1fr 1fr',
             padding: '4px', background: 'var(--zm-ink-50)',
             borderRadius: 'var(--zm-r-md)', marginBottom: '18px',
@@ -117,7 +131,7 @@ async function sendOTC() {
           </ZmField>
 
           <!-- Password fields -->
-          <template v-if="method === 'password'">
+          <template v-if="FF.methodPassword && method === 'password'">
             <div :style="{ marginTop: '12px' }">
               <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }">
                 <label :style="{ font: '500 13px var(--zm-font-body)' }">Password</label>
@@ -128,7 +142,7 @@ async function sendOTC() {
           </template>
 
           <!-- OTC note -->
-          <p v-if="method === 'otc'" :style="{ marginTop: '8px', font: '400 12px var(--zm-font-body)', color: 'var(--zm-fg-muted)', margin: '8px 0 0' }">
+          <p v-if="FF.methodOtc && method === 'otc'" :style="{ marginTop: '8px', font: '400 12px var(--zm-font-body)', color: 'var(--zm-fg-muted)', margin: '8px 0 0' }">
             No password needed. We'll send a 6-digit code.
           </p>
 
@@ -147,13 +161,13 @@ async function sendOTC() {
           </ZmButton>
 
           <!-- OAuth -->
-          <div :style="{ marginTop: '16px' }">
+          <div v-if="showOAuthSection" :style="{ marginTop: '16px' }">
             <div :style="{ position: 'relative', textAlign: 'center', marginBottom: '16px' }">
               <div :style="{ position: 'absolute', left: '0', right: '0', top: '50%', height: '1px', background: 'var(--zm-border)' }" />
               <span :style="{ position: 'relative', background: 'var(--zm-paper)', padding: '0 10px', font: '500 11px var(--zm-font-mono)', textTransform: 'uppercase', color: 'var(--zm-fg-muted)', letterSpacing: '0.06em' }">or sign in with</span>
             </div>
             <div :style="{ display: 'flex', flexDirection: 'column', gap: '10px' }">
-              <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('google')">
+              <button v-if="FF.oauthGoogle" :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('google')">
                 <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink:0">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -162,13 +176,13 @@ async function sendOTC() {
                 </svg>
                 Sign in with Google
               </button>
-              <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('facebook')">
+              <button v-if="FF.oauthFacebook" :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('facebook')">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" style="flex-shrink:0">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
                 Sign in with Facebook
               </button>
-              <button :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('linkedin')">
+              <button v-if="FF.oauthLinkedin" :style="{ height: '52px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14.5px var(--zm-font-body)' }" @click="startOAuth('linkedin')">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2" style="flex-shrink:0">
                   <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.96 0-1.74-.78-1.74-1.74s.78-1.74 1.74-1.74 1.74.78 1.74 1.74-.78 1.74-1.74 1.74zm13.5 12.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-11h2.88v1.5h.04c.4-.76 1.38-1.56 2.84-1.56 3.04 0 3.6 2 3.6 4.6v6.46z"/>
                 </svg>
@@ -227,7 +241,7 @@ async function sendOTC() {
             <ZmAlert v-if="successMessage" tone="success" :style="{ marginBottom: '16px' }">{{ successMessage }}</ZmAlert>
 
             <!-- Method switcher -->
-            <div :style="{
+            <div v-if="showMethodSwitcher" :style="{
               display: 'grid', gridTemplateColumns: '1fr 1fr',
               padding: '4px', background: 'var(--zm-ink-50)',
               borderRadius: 'var(--zm-r-md)', marginBottom: '22px',
@@ -255,7 +269,7 @@ async function sendOTC() {
             </div>
 
             <!-- Password method -->
-            <template v-if="method === 'password'">
+            <template v-if="FF.methodPassword && method === 'password'">
               <div :style="{ marginBottom: '14px' }">
                 <label :style="{ display: 'block', font: '500 13px var(--zm-font-body)', marginBottom: '6px' }">Email</label>
                 <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', height: '40px', padding: '0 12px', background: 'var(--zm-white)', border: '1px solid var(--zm-border)', borderRadius: 'var(--zm-r-md)' }">
@@ -296,7 +310,7 @@ async function sendOTC() {
             </template>
 
             <!-- One-time code method -->
-            <template v-else>
+            <template v-else-if="FF.methodOtc && method === 'otc'">
               <div :style="{ marginBottom: '20px' }">
                 <label :style="{ display: 'block', font: '500 13px var(--zm-font-body)', marginBottom: '6px' }">Email</label>
                 <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', height: '40px', padding: '0 12px', background: 'var(--zm-white)', border: '1px solid var(--zm-border)', borderRadius: 'var(--zm-r-md)' }">
@@ -321,35 +335,37 @@ async function sendOTC() {
               </p>
             </template>
 
-            <ZmDivider label="or sign in with" style="margin:20px 0 16px" />
+            <template v-if="showOAuthSection">
+              <ZmDivider label="or sign in with" style="margin:20px 0 16px" />
 
-            <!-- SSO buttons -->
-            <div :style="{ display: 'flex', flexDirection: 'column', gap: '8px' }">
-              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('google')">
-                <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink:0">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                <span :style="{ flex: '1', textAlign: 'center' }">Sign in with Google</span>
-                <span :style="{ width: '20px' }" />
-              </button>
-              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('facebook')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" style="flex-shrink:0">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                <span :style="{ flex: '1', textAlign: 'center' }">Sign in with Facebook</span>
-                <span :style="{ width: '20px' }" />
-              </button>
-              <button :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('linkedin')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2" style="flex-shrink:0">
-                  <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.96 0-1.74-.78-1.74-1.74s.78-1.74 1.74-1.74 1.74.78 1.74 1.74-.78 1.74-1.74 1.74zm13.5 12.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-11h2.88v1.5h.04c.4-.76 1.38-1.56 2.84-1.56 3.04 0 3.6 2 3.6 4.6v6.46z"/>
-                </svg>
-                <span :style="{ flex: '1', textAlign: 'center' }">Sign in with LinkedIn</span>
-                <span :style="{ width: '20px' }" />
-              </button>
-            </div>
+              <!-- SSO buttons -->
+              <div :style="{ display: 'flex', flexDirection: 'column', gap: '8px' }">
+                <button v-if="FF.oauthGoogle" :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('google')">
+                  <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink:0">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  <span :style="{ flex: '1', textAlign: 'center' }">Sign in with Google</span>
+                  <span :style="{ width: '20px' }" />
+                </button>
+                <button v-if="FF.oauthFacebook" :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('facebook')">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" style="flex-shrink:0">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                  <span :style="{ flex: '1', textAlign: 'center' }">Sign in with Facebook</span>
+                  <span :style="{ width: '20px' }" />
+                </button>
+                <button v-if="FF.oauthLinkedin" :style="{ width: '100%', height: '46px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--zm-white)', color: 'var(--zm-ink-950)', border: '1px solid var(--zm-border-strong)', borderRadius: 'var(--zm-r-md)', cursor: 'pointer', font: '600 14px var(--zm-font-body)', letterSpacing: '-0.005em' }" @click="startOAuth('linkedin')">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#0A66C2" style="flex-shrink:0">
+                    <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.96 0-1.74-.78-1.74-1.74s.78-1.74 1.74-1.74 1.74.78 1.74 1.74-.78 1.74-1.74 1.74zm13.5 12.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-11h2.88v1.5h.04c.4-.76 1.38-1.56 2.84-1.56 3.04 0 3.6 2 3.6 4.6v6.46z"/>
+                  </svg>
+                  <span :style="{ flex: '1', textAlign: 'center' }">Sign in with LinkedIn</span>
+                  <span :style="{ width: '20px' }" />
+                </button>
+              </div>
+            </template>
           </div>
 
           <p :style="{ font: '400 13px var(--zm-font-body)', color: 'var(--zm-fg-muted)', textAlign: 'center', marginTop: '20px' }">
