@@ -55,6 +55,15 @@ const ERRORS: Record<string, ErrorVariant> = {
     secondary: { label: 'Retry now', icon: 'arrow_right' },
     ref: `maint_${new Date().toISOString().slice(0, 10)}`,
   },
+  '504': {
+    code: '504', tone: 'warning', icon: 'schedule',
+    eyebrow: 'Auth service timeout',
+    title: 'Sign-in is taking', titleEmphasis: 'too long.',
+    body: "The authentication service didn't respond in time. This is usually temporary — try again in a moment.",
+    primary: { label: 'Try again', icon: 'arrow_right' },
+    secondary: { label: 'Back to home', icon: 'chevron_left', href: '/' },
+    ref: 'ref_9d4e-504',
+  },
   'offline': {
     code: '⚲', tone: 'neutral', icon: 'globe',
     eyebrow: 'No connection',
@@ -69,7 +78,9 @@ const ERRORS: Record<string, ErrorVariant> = {
 const resolvedVariant = computed((): ErrorVariant => {
   const code = route.query.code as string | undefined
   const msg = route.query.msg as string | undefined
-  if (code && ERRORS[code]) return ERRORS[code]!
+  if (code && ERRORS[code]) {
+    return msg ? { ...ERRORS[code]!, body: decodeURIComponent(msg) } : ERRORS[code]!
+  }
   if (msg) {
     // OAuth / backend error: ?msg=Authentication%20Failed — render as a 500-tone error
     // with the backend's message as the body.

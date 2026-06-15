@@ -4,13 +4,15 @@ import type { NuxtError } from '#app'
 const props = defineProps<{ error: NuxtError }>()
 
 const code = String(props.error.statusCode ?? 500)
-const allowed = ['404', '500', '403', '503']
+const allowed = ['404', '500', '403', '503', '504']
 const param = allowed.includes(code) ? code : '500'
+const rawMsg = props.error.message || (props.error as any).statusMessage || ''
+const msgParam = rawMsg ? `&msg=${encodeURIComponent(rawMsg)}` : ''
 
 // Forward to the /error page so it renders with the full design treatment.
 // useRouter is not available in error.vue, so we use a meta redirect.
 onMounted(() => {
-  window.location.replace(`/error?code=${param}`)
+  window.location.replace(`/error?code=${param}${msgParam}`)
 })
 </script>
 
