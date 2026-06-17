@@ -4,11 +4,13 @@ interface Business {
   name: string
   role: string
   location: string
+  logoUrl?: string | null
 }
 
 interface User {
   name: string
   handle: string
+  avatar?: string | null
 }
 
 const props = defineProps<{
@@ -98,50 +100,67 @@ function businessBorder(id: string) {
               }"
               @click="emit('switchTo', 'personal')"
             >
-              <ZmAvatar :name="user?.name" :size="40" style="flex-shrink:0" />
-              <div style="flex:1; min-width:0">
-                <p style="margin:0 0 2px; font:600 14px var(--zm-font-body); color:var(--zm-ink-900)">{{ user?.name }}</p>
-                <p style="margin:0; font:400 12px var(--zm-font-body); color:var(--zm-fg-muted)">{{ user?.handle }}</p>
+              <ZmAvatar :name="user?.name" :src="user?.avatar ?? undefined" :size="40" style="flex-shrink:0" />
+              <div style="flex:1; min-width:0; overflow:hidden">
+                <p style="margin:0 0 2px; font:600 14px var(--zm-font-body); color:var(--zm-ink-900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+                  {{ user?.name || 'Personal account' }}
+                </p>
+                <p style="margin:0; font:400 12px var(--zm-font-body); color:var(--zm-fg-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+                  {{ user?.handle }}
+                </p>
               </div>
-              <div v-if="activeId === 'personal'" style="display:flex; align-items:center; gap:6px; flex-shrink:0">
-                <ZmBadge tone="emerald" size="sm">Active</ZmBadge>
-                <ZmIcon name="check" :size="16" style="color:var(--zm-ink-700)" />
+              <div style="display:flex; align-items:center; gap:6px; flex-shrink:0">
+                <template v-if="activeId === 'personal'">
+                  <ZmBadge tone="emerald" size="sm">Active</ZmBadge>
+                  <ZmIcon name="check" :size="16" style="color:var(--zm-ink-700)" />
+                </template>
               </div>
             </div>
 
             <!-- Business rows -->
-            <div
-              v-for="b in (businesses ?? [])"
-              :key="b.id"
-              :style="{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '14px',
-                background: 'var(--zm-white)',
-                borderRadius: 'var(--zm-r-md)',
-                border: businessBorder(b.id),
-                marginBottom: '10px',
-                cursor: 'pointer',
-              }"
-              @mouseenter="hoverId = b.id"
-              @mouseleave="hoverId = null"
-              @click="emit('switchTo', b.id)"
-            >
-              <ZmAvatar :name="b.name" :size="40" :square="true" style="flex-shrink:0" />
-              <div style="flex:1; min-width:0">
-                <p style="margin:0 0 2px; font:600 14px var(--zm-font-body); color:var(--zm-ink-900)">{{ b.name }}</p>
-                <p style="margin:0; font:400 12px var(--zm-font-body); color:var(--zm-fg-muted)">{{ b.role }} · {{ b.location }}</p>
+            <template v-if="(businesses ?? []).length > 0">
+              <p style="margin:0 0 8px; font:500 11px var(--zm-font-body); color:var(--zm-fg-muted); letter-spacing:0.06em; text-transform:uppercase">
+                Your businesses
+              </p>
+              <div
+                v-for="b in (businesses ?? [])"
+                :key="b.id"
+                :style="{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '14px',
+                  background: 'var(--zm-white)',
+                  borderRadius: 'var(--zm-r-md)',
+                  border: businessBorder(b.id),
+                  marginBottom: '10px',
+                  cursor: 'pointer',
+                }"
+                @mouseenter="hoverId = b.id"
+                @mouseleave="hoverId = null"
+                @click="emit('switchTo', b.id)"
+              >
+                <ZmAvatar :name="b.name" :src="b.logoUrl ?? undefined" :size="40" :square="true" style="flex-shrink:0" />
+                <div style="flex:1; min-width:0; overflow:hidden">
+                  <p style="margin:0 0 2px; font:600 14px var(--zm-font-body); color:var(--zm-ink-900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+                    {{ b.name }}
+                  </p>
+                  <p style="margin:0; font:400 12px var(--zm-font-body); color:var(--zm-fg-muted)">
+                    {{ b.role }}{{ b.location ? ' · ' + b.location : '' }}
+                  </p>
+                </div>
+                <div style="flex-shrink:0; display:flex; align-items:center; gap:6px">
+                  <template v-if="activeId === b.id">
+                    <ZmBadge tone="emerald" size="sm">Active</ZmBadge>
+                    <ZmIcon name="check" :size="16" style="color:var(--zm-ink-700)" />
+                  </template>
+                  <span
+                    v-else-if="hoverId === b.id"
+                    style="font:500 12px var(--zm-font-body); color:var(--zm-ink-700)"
+                  >Open →</span>
+                </div>
               </div>
-              <div style="flex-shrink:0; display:flex; align-items:center; gap:6px">
-                <ZmBadge v-if="activeId === b.id" tone="emerald" size="sm">Active</ZmBadge>
-                <ZmIcon v-if="activeId === b.id" name="check" :size="16" style="color:var(--zm-ink-700)" />
-                <span
-                  v-else-if="hoverId === b.id"
-                  style="font:500 12px var(--zm-font-body); color:var(--zm-ink-700)"
-                >Select →</span>
-              </div>
-            </div>
+            </template>
 
             <!-- Create new business -->
             <button

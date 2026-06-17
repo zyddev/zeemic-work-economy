@@ -7,38 +7,81 @@ const props = defineProps<{
   compact?: boolean
 }>()
 
-const u = computed(() => props.user ?? { name: 'Enoch Boison', handle: '@enochboison' })
+const { isAuthenticated, user: authUser, fullName } = storeToRefs(useAuthStore())
+const contextStore = useContextStore()
+const { switchToBusiness, switchToUser } = contextStore
+const { fetchProfile, logout: authLogout } = useAuth()
+
+const u = computed(() => {
+  if (props.user) return props.user
+  const name = fullName.value || authUser.value?.email?.split('@')[0] || 'Account'
+  const handle = authUser.value?.username
+    ? `@${authUser.value.username}`
+    : authUser.value?.email ?? ''
+  const avatar = authUser.value?.profilePicture ?? null
+  return { name, handle, avatar }
+})
+
 const tabs = computed(() => [
   { id: 'exchange', label: 'Exchange', href: '/exchange' },
-  { id: 'dashboard', label: props.context === 'business' ? (props.business?.name ?? 'Business') : 'Dashboard', href: props.context === 'business' ? '/b/northwind' : '/dashboard' },
+  { id: 'dashboard', label: props.context === 'business' ? (props.business?.name ?? 'Business') : 'Dashboard', href: props.context === 'business' && contextStore.businessId ? `/b/${contextStore.businessId}` : '/dashboard' },
   { id: 'messages', label: 'Messages', href: '/messages' },
   { id: 'intelligence', label: 'Intelligence', href: '/intelligence' },
 ])
 
 // Notification dropdown
 const { notifications, markRead, markAllRead } = useNotifications()
-
 const unreadCount = computed(() => (notifications.value ?? []).filter(n => n.unread).length)
-
 const bellOpen = ref(false)
 
 // Account switcher
 const switcherOpen = ref(false)
+const switcherBusinesses = ref<{ id: string; name: string; role: string; location: string }[]>([])
+const switcherLoaded = ref(false)
+
+const { getUserBusinessList } = useBusinessAccount()
+
+async function loadBusinesses() {
+  if (switcherLoaded.value || !isAuthenticated.value) return
+  switcherLoaded.value = true
+  const list = await getUserBusinessList()
+  switcherBusinesses.value = list
+    .filter((m: any) => m.business?.id ?? m.id)
+    .map((m: any) => ({
+      id: m.business?.id ?? m.id ?? '',
+      name: m.business?.name ?? m.name ?? '',
+      role: m.role ?? 'MEMBER',
+      location: m.business?.location ?? '',
+    }))
+}
+
+watch(switcherOpen, (open) => {
+  if (open) loadBusinesses()
+})
+
+const activeContextId = computed(() =>
+  contextStore.isBusinessContext && contextStore.businessId
+    ? contextStore.businessId
+    : 'personal'
+)
 
 function onSwitchTo(id: string) {
+  switcherOpen.value = false
   if (id === 'personal') {
+    switchToUser()
     navigateTo('/dashboard')
   } else {
+    const biz = switcherBusinesses.value.find(b => b.id === id)
+    switchToBusiness(id, biz?.name ?? '')
     navigateTo('/b/' + id)
   }
 }
 
-const { logout } = useAuth()
 const loggingOut = ref(false)
 
 async function handleLogout() {
   loggingOut.value = true
-  await logout()
+  await authLogout()
   navigateTo('/login')
 }
 
@@ -47,13 +90,19 @@ const mobileMenuOpen = ref(false)
 
 watch(() => useRoute().fullPath, () => { mobileMenuOpen.value = false })
 
-// Close bell on outside click
 function onWindowClick() {
   if (bellOpen.value) bellOpen.value = false
 }
 
 onMounted(() => {
   window.addEventListener('click', onWindowClick)
+  if (isAuthenticated.value) {
+    // Fetch profile to populate name/username if not already set
+    if (!authUser.value?.firstName && !authUser.value?.username) {
+      fetchProfile()
+    }
+    loadBusinesses()
+  }
 })
 
 onUnmounted(() => {
@@ -124,11 +173,11 @@ onUnmounted(() => {
     <ZmAccountSwitcher
       :open="switcherOpen"
       :user="u"
-      :businesses="[]"
-      active-id="personal"
+      :businesses="switcherBusinesses"
+      :active-id="activeContextId"
       @close="switcherOpen = false"
       @switch-to="onSwitchTo"
-      @create-business="navigateTo('/b/new')"
+      @create-business="navigateTo('/business/account')"
       @logout="handleLogout"
     />
   </header>

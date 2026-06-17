@@ -4,6 +4,9 @@ export interface AuthUser {
   lastName: string
   email: string
   role: string
+  username?: string
+  profilePicture?: string
+  defaultBusinessId?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {

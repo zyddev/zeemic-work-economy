@@ -11,6 +11,20 @@ const { isMobile, isTablet } = useBreakpoint()
 const mobileSidebarOpen = ref(false)
 const router = useRouter()
 
+const { getUserBusinessList } = useBusinessAccount()
+const userBusinesses = ref<{ id: string; name: string; role: string }[]>([])
+
+onMounted(async () => {
+  const list = await getUserBusinessList()
+  userBusinesses.value = list
+    .filter((m: any) => m.business?.id ?? m.id)
+    .map((m: any) => ({
+      id: m.business?.id ?? m.id ?? '',
+      name: m.business?.name ?? m.name ?? '',
+      role: m.role ?? 'MEMBER',
+    }))
+})
+
 const displayName = computed(() => user.value?.name ?? 'there')
 const firstName = computed(() => displayName.value.split(' ')[0])
 
@@ -142,13 +156,43 @@ const pendingLeads = computed(() => (leads.value ?? []).slice(0, 2))
           </template>
           <template #footer>
             <div :style="{ padding: '12px 12px 4px', borderTop: '1px solid var(--zm-border)', marginTop: '12px' }">
-              <NuxtLink to="/b/northwind" :style="{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: 'var(--zm-r-md)', background: 'var(--zm-ink-100)', textDecoration: 'none', color: 'inherit' }">
-                <ZmAvatar name="Northwind Studio" :size="28" :square="true" />
+              <div class="zm-eyebrow" :style="{ padding: '0 4px', marginBottom: '6px' }">My businesses</div>
+
+              <!-- Business list -->
+              <NuxtLink
+                v-for="biz in userBusinesses"
+                :key="biz.id"
+                :to="`/b/${biz.id}`"
+                :style="{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '8px 10px', borderRadius: 'var(--zm-r-md)',
+                  background: 'var(--zm-ink-100)', textDecoration: 'none',
+                  color: 'inherit', marginBottom: '4px',
+                }"
+              >
+                <ZmAvatar :name="biz.name" :size="28" :square="true" style="flex-shrink:0" />
                 <div style="flex:1;min-width:0">
-                  <div :style="{ font: '600 12px var(--zm-font-body)' }">Switch to Business</div>
-                  <div :style="{ font: '400 11px var(--zm-font-body)', color: 'var(--zm-fg-muted)' }">Northwind Studio</div>
+                  <div :style="{ font: '600 12px var(--zm-font-body)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }">
+                    {{ biz.name }}
+                  </div>
+                  <div :style="{ font: '400 11px var(--zm-font-body)', color: 'var(--zm-fg-muted)' }">{{ biz.role }}</div>
                 </div>
                 <ZmIcon name="chevron_right" :size="14" color="var(--zm-fg-muted)" />
+              </NuxtLink>
+
+              <!-- Empty state — prompt to create -->
+              <NuxtLink
+                v-if="userBusinesses.length === 0"
+                to="/business/account"
+                :style="{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '8px 10px', borderRadius: 'var(--zm-r-md)',
+                  border: '1px dashed var(--zm-border-strong)',
+                  textDecoration: 'none', color: 'var(--zm-fg-muted)',
+                }"
+              >
+                <ZmIcon name="plus" :size="16" color="var(--zm-fg-muted)" />
+                <span :style="{ font: '500 12px var(--zm-font-body)' }">Create a business</span>
               </NuxtLink>
             </div>
           </template>
