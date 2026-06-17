@@ -59,6 +59,26 @@ export function useAuth() {
     })
   }
 
+  async function fetchProfile() {
+    const store = useAuthStore()
+    if (!store.isAuthenticated) return
+    try {
+      const res = await $fetch<any>('/api/user/profile/me/info', { credentials: 'include' })
+      const data = res?.data ?? res
+      if (!data || !store.user) return
+      store.setUser({
+        ...store.user,
+        firstName: data.firstName ?? data.user?.firstName ?? store.user.firstName,
+        lastName: data.lastName ?? data.user?.lastName ?? store.user.lastName,
+        username: data.username ?? data.profile?.username ?? data.user?.profile?.username ?? store.user.username,
+        profilePicture: data.profilePicture ?? data.profile?.profilePicture ?? data.user?.profile?.profilePicture ?? store.user.profilePicture,
+        defaultBusinessId: data.defaultBusinessId ?? store.user.defaultBusinessId,
+      })
+    } catch {
+      // profile fetch is best-effort; don't surface to user
+    }
+  }
+
   async function logout() {
     try {
       await $fetch('/api/auth/logout', { method: 'POST' })
@@ -115,13 +135,12 @@ export function useAuth() {
   }
 
   // BFF OAuth — backend owns state, code exchange, and cookie issuance.
-  // Frontend relays: browser navigates directly to the backend initiation URL,
-  // provider redirects back to our /auth/oauth/{provider}/callback relay page,
-  // which forwards code+state to the backend callback endpoint.
-  function startOAuth(provider: 'google' | 'linkedin' | 'apple'): void {
+  // /api/auth/oauth/[provider]/start proxies the initiation through Nitro:
+  // it captures the backend's first-hop redirect (forwarding state cookies) and
+  // sends the browser to the provider, or redirects to /error on misconfiguration.
+  function startOAuth(provider: 'google' | 'linkedin' | 'facebook'): void {
     if (typeof window === 'undefined') return
-    const { public: { appUrl } } = useRuntimeConfig()
-    window.location.assign(`${appUrl}/auth/oauth/${provider}`)
+    window.location.assign(`/api/auth/oauth/${provider}/start`)
   }
 
   return {
@@ -131,6 +150,7 @@ export function useAuth() {
     verifyOTC,
     register,
     logout,
+    fetchProfile,
     requestPasswordReset,
     confirmPasswordReset,
     confirmPasswordResetByToken,
