@@ -29,7 +29,6 @@ export default defineNuxtConfig({
     '/guidelines':  { prerender: true },
     '/terms':       { prerender: true },
     '/policies/**': { prerender: true },
-    '/landing':     { prerender: true },
   },
 
   app: {
