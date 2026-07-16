@@ -22,6 +22,12 @@ const P = computed(() => ({ stroke: color.value, strokeWidth: stroke.value, stro
     <template v-else-if="name === 'chevron_down'"><path d="M6 9l6 6 6-6" v-bind="P" /></template>
     <template v-else-if="name === 'chevron_right'"><path d="M9 6l6 6-6 6" v-bind="P" /></template>
     <template v-else-if="name === 'chevron_left'"><path d="M15 6l-6 6 6 6" v-bind="P" /></template>
+    <template v-else-if="name === 'chevrons_right'">
+      <path d="M6 6l6 6-6 6" v-bind="P" /><path d="M12 6l6 6-6 6" v-bind="P" />
+    </template>
+    <template v-else-if="name === 'chevrons_left'">
+      <path d="M18 6l-6 6 6 6" v-bind="P" /><path d="M12 6l-6 6 6 6" v-bind="P" />
+    </template>
     <template v-else-if="name === 'arrow_right'">
       <path d="M5 12h14" v-bind="P" /><path d="M13 5l7 7-7 7" v-bind="P" />
     </template>

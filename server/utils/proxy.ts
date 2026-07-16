@@ -65,6 +65,8 @@ export interface ProxyOptions {
   headers?: Record<string, string>
   /** Override/extend query params forwarded upstream */
   query?: Record<string, string>
+  /** Use `query` as-is instead of merging it over the incoming request's query params */
+  replaceQuery?: boolean
 }
 
 /**
@@ -87,7 +89,7 @@ export async function proxyTo(
   // Build final URL with merged query params
   const url = new URL(targetUrl)
   const incomingQuery = getQuery(event) as Record<string, string>
-  const mergedQuery = { ...incomingQuery, ...(opts.query ?? {}) }
+  const mergedQuery = opts.replaceQuery ? { ...(opts.query ?? {}) } : { ...incomingQuery, ...(opts.query ?? {}) }
   for (const [k, v] of Object.entries(mergedQuery)) {
     if (v !== undefined && v !== null) url.searchParams.set(k, String(v))
   }

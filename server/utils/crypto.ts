@@ -62,3 +62,32 @@ export async function decryptParam(ciphertext: string, secret: string): Promise<
   const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted)
   return new TextDecoder().decode(decrypted)
 }
+
+/**
+ * Encrypts cursor/limit params for GET /job and GET /business, per the
+ * backend's `parseQueryParams` contract. This is a *different* wire format
+ * from encryptParam/decryptParam above:
+ *  - key is the raw UTF-8 bytes of the secret, imported directly (no PBKDF2)
+ *  - output is "<ivBase64>:<ciphertextBase64>", not a single concatenated blob
+ *  - plaintext is double-JSON-wrapped (the backend calls JSON.parse twice)
+ */
+export async function encryptListQuery(
+  payload: { cursor?: string; limit?: number },
+  secret: string,
+): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt'],
+  )
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const plaintext = JSON.stringify({ q: JSON.stringify(payload) })
+
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext))
+
+  const ivB64 = Buffer.from(iv).toString('base64')
+  const cipherB64 = Buffer.from(ciphertext).toString('base64')
+  return `${ivB64}:${cipherB64}`
+}

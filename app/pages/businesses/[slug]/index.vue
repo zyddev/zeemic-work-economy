@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Job } from '~/types'
-
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 
@@ -30,12 +28,7 @@ const industries = computed(() => {
 })
 
 const businessId = computed(() => (business.value as any)?.id ?? '')
-const { projects: allJobsRaw, pending: jobsPending } = useMarketplaceProjects(undefined, { server: false })
-const allJobs = computed(() =>
-  businessId.value
-    ? (allJobsRaw.value ?? []).filter(j => j.businessId === businessId.value)
-    : []
-)
+const { jobs: allJobs, pending: jobsPending } = useBusinessJobs(businessId)
 const previewJobs = computed(() => allJobs.value.slice(0, 4))
 
 const { isMobile, isTablet } = useBreakpoint()

@@ -1,8 +1,13 @@
 <script setup lang="ts">
 useHead({ title: 'Business Directory — Zeemic' })
 
-const { stores, pending } = useMarketplaceStores()
+const { stores, pending, loadMore, hasMore, loadingMore } = useMarketplaceStores()
 const { isMobile, isTablet } = useBreakpoint()
+
+const anchor = ref<HTMLElement | null>(null)
+useInfiniteObserver(anchor, () => {
+  if (hasMore.value) loadMore()
+})
 </script>
 <template>
   <div class="zm-root" style="background:var(--zm-paper);min-height:100vh">
@@ -32,6 +37,12 @@ const { isMobile, isTablet } = useBreakpoint()
         <template v-else>
           <CardsBusinessCard v-for="b in (stores ?? [])" :key="b.name" :biz="b" />
         </template>
+      </div>
+
+      <!-- Infinite scroll anchor -->
+      <div ref="anchor" style="height:1px; margin-top:40px" />
+      <div v-if="!pending" style="padding:24px 0">
+        <ZmLoadMore :loading="loadingMore" :has-more="hasMore" :shown="(stores ?? []).length" @load-more="loadMore" />
       </div>
     </div>
     <ExchangeAppFooter />

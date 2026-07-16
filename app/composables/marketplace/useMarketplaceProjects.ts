@@ -25,23 +25,56 @@ function normalize(p: any): Job {
   }
 }
 
-function extractList(res: any): Job[] {
-  const arr = res?.data?.jobs ?? res?.data ?? res?.jobs ?? res?.items ?? res
-  return Array.isArray(arr) ? arr.map(normalize) : []
+interface JobsPage { jobs: Job[]; cursor?: string; hasMore: boolean }
+
+function extractPage(res: any): JobsPage {
+  const body = res?.data ?? res
+  const raw = body?.jobs ?? (Array.isArray(body) ? body : [])
+  return {
+    jobs: Array.isArray(raw) ? raw.map(normalize) : [],
+    cursor: body?.cursor,
+    hasMore: !!body?.hasMore,
+  }
 }
 
-export function useMarketplaceProjects(params?: Ref<Record<string, any>> | undefined, opts?: { server?: boolean }) {
+export function useMarketplaceProjects(
+  params?: Ref<Record<string, any>> | undefined,
+  opts?: { server?: boolean; limit?: number },
+) {
   const server = opts?.server ?? true
-  const { data, pending, error, refresh } = useFetch<Job[]>(
+  const limit = opts?.limit ?? 20
+  const loadingMore = ref(false)
+
+  const query = computed(() => ({ ...(params?.value ?? {}), limit }))
+
+  const { data, pending, error, refresh } = useFetch<JobsPage>(
     '/api/job',
     {
-      query: params,
+      query,
       server,
-      default: () => (server ? ZM_JOBS as Job[] : []),
-      transform: extractList,
+      default: () => ({ jobs: (server ? ZM_JOBS as Job[] : []), cursor: undefined, hasMore: false }),
+      transform: extractPage,
     }
   )
-  return { projects: data, pending, error, refresh }
+
+  const projects = computed(() => data.value?.jobs ?? [])
+  const hasMore = computed(() => !!data.value?.hasMore)
+
+  async function loadMore() {
+    if (loadingMore.value || !hasMore.value || !data.value?.cursor) return
+    loadingMore.value = true
+    try {
+      const res = await $fetch<any>('/api/job', {
+        query: { ...(params?.value ?? {}), limit, cursor: data.value.cursor },
+      })
+      const page = extractPage(res)
+      data.value = { jobs: [...(data.value?.jobs ?? []), ...page.jobs], cursor: page.cursor, hasMore: page.hasMore }
+    } finally {
+      loadingMore.value = false
+    }
+  }
+
+  return { projects, pending, error, refresh, loadMore, hasMore, loadingMore }
 }
 
 export function useMarketplaceProject(id: Ref<string> | string) {

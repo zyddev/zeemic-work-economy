@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Job } from '~/types'
-
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 
@@ -8,12 +6,7 @@ const { store: business, pending: bizPending } = useMarketplaceStore(slug)
 useHead(() => ({ title: `Jobs at ${business.value?.name ?? 'Business'} — Zeemic` }))
 
 const businessId = computed(() => (business.value as any)?.id ?? '')
-const { projects: allJobsRaw, pending: jobsPending } = useMarketplaceProjects(undefined, { server: false })
-const jobs = computed(() =>
-  businessId.value
-    ? (allJobsRaw.value ?? []).filter((j: Job) => j.businessId === businessId.value)
-    : []
-)
+const { jobs, pending: jobsPending } = useBusinessJobs(businessId)
 
 const PALETTE = ['#1A4D3A', '#11211A', '#7A4E2D', '#1E4B68', '#6B3A6B', '#2B7A4B']
 const bannerColor = computed(() => {
@@ -23,6 +16,12 @@ const bannerColor = computed(() => {
 
 const pending = computed(() => bizPending.value || jobsPending.value)
 const { isMobile, isTablet } = useBreakpoint()
+
+const PAGE_SIZE = 9
+const page = ref(1)
+const totalPages = computed(() => Math.max(1, Math.ceil(jobs.value.length / PAGE_SIZE)))
+const pagedJobs = computed(() => jobs.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
+watch(jobs, () => { page.value = 1 })
 </script>
 
 <template>
@@ -91,9 +90,19 @@ const { isMobile, isTablet } = useBreakpoint()
           <CardsJobCard v-for="i in 6" :key="i" :loading="true" />
         </template>
         <template v-else>
-          <CardsJobCard v-for="j in jobs" :key="j.id" :job="j" />
+          <CardsJobCard v-for="j in pagedJobs" :key="j.id" :job="j" />
         </template>
       </div>
+
+      <ZmPagination
+        v-if="!pending && jobs.length > PAGE_SIZE"
+        :current="page"
+        :total="totalPages"
+        :count="jobs.length"
+        :per-page="PAGE_SIZE"
+        style="margin-top:32px"
+        @change="page = $event"
+      />
 
       <!-- Empty -->
       <div v-else :style="{ padding: '80px 0', textAlign: 'center' }">

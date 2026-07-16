@@ -7,7 +7,7 @@ import {
 } from '~/composables/utils/jobs.api'
 import { ZM_JOBS } from '~/data'
 
-function normalizeJob(p: any): Job {
+export function normalizeJob(p: any): Job {
   const city = p.city ?? ''
   const country = p.country ?? ''
   const location = city && country ? `${city}, ${country}` : city || country || p.location || ''

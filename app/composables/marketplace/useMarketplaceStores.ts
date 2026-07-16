@@ -17,21 +17,51 @@ function normalize(s: any): Business {
   }
 }
 
-function extractList(res: any): Business[] {
-  const arr = res?.data?.businesses ?? res?.data ?? res?.businesses ?? res?.items ?? res
-  return Array.isArray(arr) ? arr.map(normalize) : []
+interface BusinessesPage { businesses: Business[]; cursor?: string; hasMore: boolean }
+
+function extractPage(res: any): BusinessesPage {
+  const body = res?.data ?? res
+  const raw = body?.businesses ?? (Array.isArray(body) ? body : [])
+  return {
+    businesses: Array.isArray(raw) ? raw.map(normalize) : [],
+    cursor: body?.cursor,
+    hasMore: !!body?.hasMore,
+  }
 }
 
-export function useMarketplaceStores(params?: Ref<Record<string, any>>) {
-  const { data, pending, error, refresh } = useFetch<Business[]>(
+export function useMarketplaceStores(params?: Ref<Record<string, any>>, opts?: { limit?: number }) {
+  const limit = opts?.limit ?? 20
+  const loadingMore = ref(false)
+
+  const query = computed(() => ({ ...(params?.value ?? {}), limit }))
+
+  const { data, pending, error, refresh } = useFetch<BusinessesPage>(
     '/api/business',
     {
-      query: params,
-      default: () => (ZM_BUSINESSES as any[]).map(normalize),
-      transform: extractList,
+      query,
+      default: () => ({ businesses: (ZM_BUSINESSES as any[]).map(normalize), cursor: undefined, hasMore: false }),
+      transform: extractPage,
     }
   )
-  return { stores: data, pending, error, refresh }
+
+  const stores = computed(() => data.value?.businesses ?? [])
+  const hasMore = computed(() => !!data.value?.hasMore)
+
+  async function loadMore() {
+    if (loadingMore.value || !hasMore.value || !data.value?.cursor) return
+    loadingMore.value = true
+    try {
+      const res = await $fetch<any>('/api/business', {
+        query: { ...(params?.value ?? {}), limit, cursor: data.value.cursor },
+      })
+      const page = extractPage(res)
+      data.value = { businesses: [...(data.value?.businesses ?? []), ...page.businesses], cursor: page.cursor, hasMore: page.hasMore }
+    } finally {
+      loadingMore.value = false
+    }
+  }
+
+  return { stores, pending, error, refresh, loadMore, hasMore, loadingMore }
 }
 
 export function useMarketplaceStore(slug: Ref<string> | string) {

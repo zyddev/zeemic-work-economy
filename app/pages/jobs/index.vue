@@ -8,7 +8,7 @@ const { isMobile, isTablet } = useBreakpoint()
 const { gtag } = useGtag()
 
 // Load jobs
-const { projects: allJobs, pending, refresh } = useMarketplaceProjects()
+const { projects: allJobs, pending, refresh, loadMore, hasMore, loadingMore } = useMarketplaceProjects()
 
 // Filters
 const filters = reactive({
@@ -73,8 +73,13 @@ const filteredJobs = computed<Job[]>(() => {
   return list
 })
 
-// Infinite scroll
-const { visibleItems, hasMore, anchor } = useListingInfiniteScroll(filteredJobs, 12)
+// Infinite scroll — filters/sort apply over jobs loaded so far; scrolling near
+// the bottom fetches the next server page via cursor pagination
+const visibleItems = filteredJobs
+const anchor = ref<HTMLElement | null>(null)
+useInfiniteObserver(anchor, () => {
+  if (hasMore.value) loadMore()
+})
 
 // Inject structured data after jobs load
 watch(filteredJobs, (jobs) => {
@@ -144,6 +149,9 @@ const sortLabel = computed(() => SORT_OPTIONS.find(o => o.value === sortOption.v
             </NuxtLink>
             <!-- Infinite scroll anchor -->
             <div ref="anchor" style="height:1px" />
+            <div style="padding:16px 0">
+              <ZmLoadMore :loading="loadingMore" :has-more="hasMore" :shown="filteredJobs.length" @load-more="loadMore" />
+            </div>
           </template>
         </div>
 
@@ -265,8 +273,8 @@ const sortLabel = computed(() => SORT_OPTIONS.find(o => o.value === sortOption.v
 
         <!-- Infinite scroll anchor -->
         <div ref="anchor" style="height:1px; margin-top:40px" />
-        <div v-if="hasMore" style="text-align:center; padding:20px 0">
-          <ZmSpinner :size="24" />
+        <div v-if="!pending" style="padding:24px 0">
+          <ZmLoadMore :loading="loadingMore" :has-more="hasMore" :shown="filteredJobs.length" @load-more="loadMore" />
         </div>
       </div>
 

@@ -25,6 +25,16 @@ const editJob = ref<any | null>(null)
 const deleteConfirmId = ref<string | null>(null)
 const processingId = ref<string | null>(null)
 
+const PAGE_SIZE = 10
+const jobsPage = ref(1)
+const applicationsPage = ref(1)
+const jobsTotalPages = computed(() => Math.max(1, Math.ceil(jobs.value.length / PAGE_SIZE)))
+const applicationsTotalPages = computed(() => Math.max(1, Math.ceil(applications.value.length / PAGE_SIZE)))
+const pagedJobs = computed(() => jobs.value.slice((jobsPage.value - 1) * PAGE_SIZE, jobsPage.value * PAGE_SIZE))
+const pagedApplications = computed(() => applications.value.slice((applicationsPage.value - 1) * PAGE_SIZE, applicationsPage.value * PAGE_SIZE))
+watch(jobs, () => { jobsPage.value = 1 })
+watch(applications, () => { applicationsPage.value = 1 })
+
 async function loadData() {
   if (!businessId.value) return
   const [j, a] = await Promise.all([
@@ -167,12 +177,12 @@ const statusLabel = (job: any) => job.archived ? 'Archived' : 'Active'
 
             <!-- Job rows -->
             <div
-              v-for="(job, i) in jobs"
+              v-for="(job, i) in pagedJobs"
               :key="job.id"
               :style="{
                 display: 'grid', gridTemplateColumns: '1fr 120px 140px 100px 80px 120px', gap: '12px',
                 padding: '16px 20px', alignItems: 'center',
-                borderBottom: i < jobs.length - 1 ? '1px solid var(--zm-border)' : 'none',
+                borderBottom: i < pagedJobs.length - 1 ? '1px solid var(--zm-border)' : 'none',
                 opacity: job.archived ? 0.6 : 1,
               }"
             >
@@ -204,6 +214,16 @@ const statusLabel = (job: any) => job.archived ? 'Archived' : 'Active'
               </div>
             </div>
           </div>
+
+          <ZmPagination
+            v-if="jobs.length > PAGE_SIZE"
+            :current="jobsPage"
+            :total="jobsTotalPages"
+            :count="jobs.length"
+            :per-page="PAGE_SIZE"
+            style="margin-top:16px"
+            @change="jobsPage = $event"
+          />
         </template>
 
         <!-- Applications table -->
@@ -226,12 +246,12 @@ const statusLabel = (job: any) => job.archived ? 'Archived' : 'Active'
             </div>
 
             <div
-              v-for="(app, i) in applications"
+              v-for="(app, i) in pagedApplications"
               :key="app.id"
               :style="{
                 display: 'grid', gridTemplateColumns: '1fr 200px 120px 100px', gap: '12px',
                 padding: '16px 20px', alignItems: 'center',
-                borderBottom: i < applications.length - 1 ? '1px solid var(--zm-border)' : 'none',
+                borderBottom: i < pagedApplications.length - 1 ? '1px solid var(--zm-border)' : 'none',
               }"
             >
               <div style="display:flex; align-items:center; gap:10px">
@@ -257,6 +277,16 @@ const statusLabel = (job: any) => job.archived ? 'Archived' : 'Active'
               <span v-else :style="{ font: '400 12px var(--zm-font-body)', color: 'var(--zm-fg-muted)' }">Done</span>
             </div>
           </div>
+
+          <ZmPagination
+            v-if="applications.length > PAGE_SIZE"
+            :current="applicationsPage"
+            :total="applicationsTotalPages"
+            :count="applications.length"
+            :per-page="PAGE_SIZE"
+            style="margin-top:16px"
+            @change="applicationsPage = $event"
+          />
         </template>
       </main>
     </div>
