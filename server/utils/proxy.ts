@@ -87,7 +87,14 @@ export async function proxyTo(
   const headers = { ...buildProxyHeaders(event), ...(opts.headers ?? {}) }
 
   // Build final URL with merged query params
-  const url = new URL(targetUrl)
+  let url: URL
+  try {
+    url = new URL(targetUrl)
+  } catch {
+    // Never let a missing/blank NUXT_PUBLIC_APP_URL crash the function —
+    // fail cleanly as a Bad Gateway instead of an unhandled TypeError.
+    throw createError({ statusCode: 502, statusMessage: 'Bad Gateway' })
+  }
   const incomingQuery = getQuery(event) as Record<string, string>
   const mergedQuery = opts.replaceQuery ? { ...(opts.query ?? {}) } : { ...incomingQuery, ...(opts.query ?? {}) }
   for (const [k, v] of Object.entries(mergedQuery)) {
